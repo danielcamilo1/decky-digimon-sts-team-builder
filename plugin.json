@@ -1,0 +1,11 @@
+{
+  "name": "Digimon Time Stranger Team Builder",
+  "author": "danielvergara",
+  "flags": [],
+  "api_version": 1,
+  "publish": {
+    "tags": ["game", "utility", "digimon"],
+    "description": "Plan Digimon Story: Time Stranger evolution lines from the Quick Access Menu. A gamepad-native port of diegogliarte's web team builder.",
+    "image": "https://raw.githubusercontent.com/danielvergara/decky-digimon-sts-team-builder/main/assets/store-image.png"
+  }
+}

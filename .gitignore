@@ -1,0 +1,15 @@
+node_modules
+.pnpm-store
+dist/
+out/
+cli/
+__pycache__/
+decky_plugin.py
+*.log
+.DS_Store
+.vscode/settings.json
+
+# Upstream repos cloned locally for `pnpm prepare-data` / reference only.
+_ref-tools/
+_ref-template/
+_ref-loader/
