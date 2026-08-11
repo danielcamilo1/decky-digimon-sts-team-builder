@@ -1,6 +1,7 @@
 import { Focusable, Menu, MenuItem, MenuSeparator, showContextMenu } from "@decky/ui";
 import { useRef } from "react";
 
+import { chainLabel } from "../data/digimon";
 import type { Chain, Digimon } from "../data/types";
 import { teamStore } from "../state/teamStore";
 import { IconDots, IconLock } from "../ui/icons";
@@ -51,9 +52,7 @@ export function TeamLineRow({ chain, index, total, members, selected, onOpen, on
     );
   };
 
-  const head = members[0];
-  const tail = members.at(-1);
-  const label = head && tail && head.id !== tail.id ? `${head.name} → ${tail.name}` : (tail?.name ?? "Empty line");
+  const label = chainLabel(members);
 
   const select = () => {
     teamStore.select(index);

@@ -31,3 +31,47 @@ export const exitLeft = (getTarget: () => HTMLElement | null) => focusExit(Gamep
 export function firstTarget(root: HTMLElement | null, selector: string): HTMLElement | null {
   return root?.querySelector<HTMLElement>(selector) ?? null;
 }
+
+/**
+ * Focuses a target that may not exist yet, and holds it there.
+ *
+ * Used when arriving on the page from the Quick Access panel: the route mounts before
+ * the dataset has loaded, so the element to focus doesn't exist for the first few
+ * frames. Steam also applies its own focus when a route mounts, which can land after
+ * ours, so the focus is re-asserted once the tree has settled.
+ *
+ * Returns a cancel function, for use as an effect cleanup.
+ */
+export function focusWhenReady(getTarget: () => HTMLElement | null, timeoutMs = 2000): () => void {
+  const start = Date.now();
+  let cancelled = false;
+  let frame = 0;
+  let timer: ReturnType<typeof setTimeout> | null = null;
+
+  const tick = () => {
+    if (cancelled) return;
+
+    const target = getTarget();
+    if (!target) {
+      if (Date.now() - start > timeoutMs) return;
+      frame = requestAnimationFrame(tick);
+      return;
+    }
+
+    target.focus();
+    timer = setTimeout(() => {
+      timer = null;
+      // Only take focus back if Steam's mount-time focus moved it elsewhere; if the
+      // user has already moved on, leave them where they are.
+      if (!cancelled && !target.contains(document.activeElement)) target.focus();
+    }, 120);
+  };
+
+  frame = requestAnimationFrame(tick);
+
+  return () => {
+    cancelled = true;
+    cancelAnimationFrame(frame);
+    if (timer) clearTimeout(timer);
+  };
+}

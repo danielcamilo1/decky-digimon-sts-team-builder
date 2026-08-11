@@ -37,6 +37,14 @@ export function chainMembers(chain: Chain, byId: Map<number, Digimon>): Digimon[
   return resolve(chain.ids, byId);
 }
 
+/** How a line is named wherever it's listed: "Agumon → Greymon", or just the one name. */
+export function chainLabel(members: Digimon[]): string {
+  const head = members[0];
+  const tail = members.at(-1);
+  if (!head || !tail) return "Empty line";
+  return head.id === tail.id ? tail.name : `${head.name} → ${tail.name}`;
+}
+
 export function preEvolutionsOf(digimon: Digimon, byId: Map<number, Digimon>): Digimon[] {
   return resolve(digimon.pre_evolutions, byId);
 }

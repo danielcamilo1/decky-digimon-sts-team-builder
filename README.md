@@ -30,7 +30,7 @@ Decky gives a plugin two very different amounts of room, so the plugin uses both
 
 | Surface | What lives there |
 | --- | --- |
-| **Quick Access panel** (~310 px wide, over a running game) | A read-only summary of your team, plus *Random Team* and *Share*. Tapping a line jumps to it in the builder. |
+| **Quick Access panel** (~310 px wide, over a running game) | An overview of your team — every line with its name, stage count, lock state and sprites — plus *Random Team* and *Share*. Picking a line opens it in the builder, with focus already on that line. |
 | **Full-screen page** (`/digimon-time-stranger-team-builder`) | The actual builder: the team list on the left, the selected evolution line laid out horizontally on the right. |
 
 The panel deliberately doesn't try to be an editor — there isn't room for an evolution graph
@@ -43,6 +43,7 @@ evolution does, so the d-pad moves along it without any mode switching.
 
 | Input | Action |
 | --- | --- |
+| **A** on a line in the Quick Access overview | Open the builder with that line already focused |
 | **D-pad up/down** in the team list | Move between evolution lines (the detail panel follows) |
 | **A** on a line row | Open that line in the detail panel |
 | **A** on the row's **⋮** | Line menu: move up/down, lock, remove |
@@ -118,10 +119,11 @@ assets/
   attributes/*.png          attribute icons
 src/
   data/       types, pure evolution-graph logic, share codes, asset URLs
-  state/      team store (observable + debounced persistence), dex loader hook
+  state/      team store (observable + debounced persistence), dex loader,
+              panel → page hand-off
   components/ portrait, chain strip, detail panels
   pages/      full-screen route and the line editor
-  panel/      Quick Access panel
+  panel/      Quick Access panel (the team overview)
   modals/     add-Digimon browser, share/import
   ui/         theme tokens, focus CSS, inline SVG icons, primitives
 ```
@@ -140,6 +142,10 @@ A couple of decisions worth knowing about:
 - **Editing happens through modals, not side columns.** Tapping a tile opens that Digimon's
   full details; the control under it picks which branch the line takes from there. That keeps
   the line itself on one horizontal row instead of wrapping around option columns.
+- **The panel and the page are separate React trees.** Decky mounts each surface on its
+  own and the route takes no parameters, so opening a line from the overview leaves a
+  short-lived note in `state/openIntent.ts` that the page reads on mount to decide where
+  focus starts.
 - **Trimming a middle Digimon keeps it** and cuts everything after, where the web tool drops
   it too. The remove action in the details modal spells out which it is.
 

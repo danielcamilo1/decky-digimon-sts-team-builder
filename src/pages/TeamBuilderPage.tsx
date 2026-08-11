@@ -7,12 +7,13 @@ import { chainMembers, randomTeam } from "../data/digimon";
 import { TEAM_SIZE } from "../data/types";
 import { AddDigimonModal } from "../modals/AddDigimonModal";
 import { ShareModal } from "../modals/ShareModal";
+import { takeOpenIntent } from "../state/openIntent";
 import { teamStore, useTeam } from "../state/teamStore";
 import { useDex } from "../state/useDex";
 import { GlobalStyles } from "../ui/GlobalStyles";
 import { IconDice, IconPlus, IconShare, IconTrash } from "../ui/icons";
 import { ActionButton, ButtonHints, Divider, EmptyState, ScrollArea, SectionLabel } from "../ui/primitives";
-import { exitRight, firstTarget } from "../ui/nav";
+import { exitRight, firstTarget, focusWhenReady } from "../ui/nav";
 import { theme } from "../ui/theme";
 import { ChainEditor } from "./ChainEditor";
 
@@ -36,6 +37,17 @@ export function TeamBuilderPage() {
   // The page can be closed by the system (Steam button, game launch), so don't wait
   // on the debounce timer to persist the last edit.
   useEffect(() => () => teamStore.flush(), []);
+
+  const ready = !error && !!dex && loaded;
+
+  // Arriving from a line in the Quick Access overview: land on the line itself rather
+  // than the team list, which is where the user was already pointing. The dataset is
+  // still loading when the route mounts, so the strip doesn't exist yet.
+  useEffect(() => {
+    if (!ready) return;
+    if (takeOpenIntent() !== "line") return;
+    return focusWhenReady(editorEntry);
+  }, [ready]);
 
   const selected = team.chains[team.selected];
 

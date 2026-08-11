@@ -2,20 +2,22 @@ import { toaster } from "@decky/api";
 import { ButtonItem, Navigation, PanelSection, PanelSectionRow, showModal } from "@decky/ui";
 
 import { ChainStrip } from "../components/ChainStrip";
-import { chainMembers, randomTeam } from "../data/digimon";
+import { chainLabel, chainMembers, randomTeam } from "../data/digimon";
 import { TEAM_SIZE } from "../data/types";
 import { ShareModal } from "../modals/ShareModal";
 import { TEAM_BUILDER_ROUTE } from "../pages/TeamBuilderPage";
+import { requestOpen } from "../state/openIntent";
 import { teamStore, useTeam } from "../state/teamStore";
 import { useDex } from "../state/useDex";
 import { GlobalStyles } from "../ui/GlobalStyles";
-import { IconDice, IconShare } from "../ui/icons";
+import { IconDice, IconLock, IconShare } from "../ui/icons";
 import { theme } from "../ui/theme";
 
 /**
- * The Quick Access column is ~310px wide and shares the screen with a running game,
- * so this stays a summary plus the two actions worth doing without leaving the game.
- * The actual building happens on the full-screen route.
+ * The Quick Access column is ~310px wide and shares the screen with a running game, so
+ * this is the team's overview: every evolution line at a glance, plus the two actions
+ * worth doing without leaving the game. The actual building happens on the full-screen
+ * route, which a line opens straight into.
  */
 export function QuickAccessPanel() {
   const { team, loaded } = useTeam();
@@ -26,11 +28,18 @@ export function QuickAccessPanel() {
     Navigation.Navigate(TEAM_BUILDER_ROUTE);
   };
 
+  /** Opening a specific line lands focus on the line itself, not the team list. */
+  const openLine = (index: number) => {
+    teamStore.select(index);
+    requestOpen("line");
+    openBuilder();
+  };
+
   return (
     <div className="dtb-root">
       <GlobalStyles />
 
-      <PanelSection title="Team">
+      <PanelSection title="Your team">
         {error && (
           <PanelSectionRow>
             <div style={{ fontSize: 12, color: theme.color.danger }}>Couldn't load the Digimon data.</div>
@@ -51,6 +60,14 @@ export function QuickAccessPanel() {
           </PanelSectionRow>
         )}
 
+        {!error && loaded && dex && team.chains.length > 0 && (
+          <PanelSectionRow>
+            <div style={{ fontSize: 11, color: theme.color.textFaint, lineHeight: 1.45 }}>
+              {team.chains.length} of {TEAM_SIZE} evolution lines. Pick one to open it in the builder.
+            </div>
+          </PanelSectionRow>
+        )}
+
         {!error &&
           loaded &&
           dex &&
@@ -58,19 +75,36 @@ export function QuickAccessPanel() {
             const members = chainMembers(chain, dex.byId);
             return (
               <PanelSectionRow key={index}>
-                <ButtonItem
-                  layout="below"
-                  bottomSeparator="none"
-                  onClick={() => {
-                    teamStore.select(index);
-                    openBuilder();
-                  }}
-                >
-                  <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-start" }}>
-                    <span style={{ fontSize: 11, color: theme.color.textDim }}>
-                      {members.at(-1)?.name ?? "Empty line"}
-                      {chain.locked && " · locked"}
-                    </span>
+                <ButtonItem layout="below" bottomSeparator="none" onClick={() => openLine(index)}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 5, alignItems: "stretch", width: "100%" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: theme.color.textFaint, flexShrink: 0 }}>
+                        {index + 1}
+                      </span>
+                      <span
+                        style={{
+                          flex: 1,
+                          minWidth: 0,
+                          fontSize: 12,
+                          fontWeight: 600,
+                          textAlign: "left",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                        title={chainLabel(members)}
+                      >
+                        {chainLabel(members)}
+                      </span>
+                      {chain.locked && (
+                        <span style={{ display: "flex", flexShrink: 0 }}>
+                          <IconLock size={10} color={theme.color.locked} />
+                        </span>
+                      )}
+                      <span style={{ fontSize: 10, color: theme.color.textFaint, flexShrink: 0 }}>
+                        {members.length} stage{members.length === 1 ? "" : "s"}
+                      </span>
+                    </div>
                     <ChainStrip members={members} size={28} max={5} />
                   </div>
                 </ButtonItem>

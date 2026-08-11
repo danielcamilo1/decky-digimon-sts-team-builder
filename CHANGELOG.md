@@ -5,6 +5,21 @@ All notable changes to this plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] — 2026-08-11
+
+### Added
+
+- **The Quick Access panel is now a team overview.** Opening the plugin from the Decky menu
+  lists every evolution line with its name, how many stages it has, whether it's locked, and
+  its sprites — so the team is readable without leaving the game.
+
+### Changed
+
+- **Opening a line from the overview lands on the line.** Pressing A on a line in the panel
+  still jumps to the builder, but focus now starts on that line's first Digimon in the detail
+  panel on the right instead of on the team list, so the d-pad carries on from where you were
+  pointing. Opening the builder with *Open Team Builder* still starts in the team list.
+
 ## [1.0.1] — 2026-08-11
 
 ### Fixed
