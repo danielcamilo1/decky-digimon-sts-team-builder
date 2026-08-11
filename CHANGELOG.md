@@ -5,6 +5,23 @@ All notable changes to this plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] — 2026-08-11
+
+### Fixed
+
+- **Sidebar buttons now move by position.** Pressing left from *Clear* went to *Add line* at
+  the top of the other column instead of *Share* beside it; each column now keeps its vertical
+  position when focus enters from the side.
+- **Moving between the two panels.** D-pad right from a line's ⋮ now enters the evolution line,
+  and left from the first Digimon in the line goes back to the team list. Steam's spatial
+  search doesn't cross between the panels on its own — each is its own scroll container — so
+  the elements on those boundaries now say explicitly where focus should go.
+- **Focus highlight no longer clipped** at the top of the evolution line panel. A box with
+  `overflow-x` also clips vertically, so the padding has to clear the focus ring on every side.
+- **Digimon details modal opens at the top.** The remove action was the only focusable element,
+  so Steam focused it on mount and scrolled the modal past its own header; the action now sits
+  beside the Digimon's name instead of at the foot of the modal.
+
 ## [1.0.0] — 2026-08-11
 
 First release. A gamepad-native Steam Deck port of diegogliarte's

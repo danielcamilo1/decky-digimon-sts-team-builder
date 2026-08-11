@@ -1,6 +1,6 @@
 import { Focusable, TextField } from "@decky/ui";
-import type { NavEntryPositionPreferences, TextFieldProps } from "@decky/ui";
-import type { CSSProperties, FC, ReactNode } from "react";
+import type { GamepadEvent, NavEntryPositionPreferences, TextFieldProps } from "@decky/ui";
+import type { CSSProperties, FC, ReactNode, RefObject } from "react";
 
 import { theme } from "./theme";
 
@@ -19,15 +19,27 @@ interface ActionButtonProps {
   danger?: boolean;
   disabled?: boolean;
   style?: CSSProperties;
+  /** Used to hand focus to another panel on a d-pad press. See ui/nav.ts. */
+  onButtonDown?: (evt: GamepadEvent) => void;
 }
 
-export function ActionButton({ children, onClick, icon, actionLabel, danger, disabled, style }: ActionButtonProps) {
+export function ActionButton({
+  children,
+  onClick,
+  icon,
+  actionLabel,
+  danger,
+  disabled,
+  style,
+  onButtonDown,
+}: ActionButtonProps) {
   return (
     <Focusable
       className={`dtb-action${danger ? " dtb-danger" : ""}${disabled ? " dtb-disabled" : ""}`}
       style={{ opacity: disabled ? 0.45 : 1, ...style }}
       onActivate={disabled ? undefined : onClick}
       onOKActionDescription={disabled ? undefined : actionLabel}
+      onButtonDown={onButtonDown}
     >
       {icon && <span style={{ display: "flex", fontSize: 14 }}>{icon}</span>}
       <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -42,6 +54,7 @@ interface ScrollAreaProps {
   style?: CSSProperties;
   /** Which child Steam should land on when focus enters from outside. */
   navEntryPreferPosition?: NavEntryPositionPreferences;
+  containerRef?: RefObject<HTMLDivElement | null>;
 }
 
 /**
@@ -49,9 +62,10 @@ interface ScrollAreaProps {
  * of the Steam bundle by signature and can go missing across Steam updates. Rows keep
  * themselves visible by calling scrollIntoView from onGamepadFocus.
  */
-export function ScrollArea({ children, style, navEntryPreferPosition }: ScrollAreaProps) {
+export function ScrollArea({ children, style, navEntryPreferPosition, containerRef }: ScrollAreaProps) {
   return (
     <Focusable
+      ref={containerRef}
       className="dtb-scroll"
       noFocusRing
       navEntryPreferPosition={navEntryPreferPosition}

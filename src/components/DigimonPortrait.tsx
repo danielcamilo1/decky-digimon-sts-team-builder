@@ -1,4 +1,5 @@
 import { Focusable } from "@decky/ui";
+import type { GamepadEvent } from "@decky/ui";
 import type { CSSProperties } from "react";
 
 import { attributeIconUrl, spriteUrl } from "../data/assets";
@@ -22,6 +23,8 @@ interface Props {
   /** Shown in the footer legend while this tile has focus. */
   actionLabel?: string;
   onFocus?: () => void;
+  /** Used to hand focus to another panel on a d-pad press. See ui/nav.ts. */
+  onButtonDown?: (evt: GamepadEvent) => void;
   showName?: boolean;
   showGeneration?: boolean;
   /** Ring emphasis for line members vs. candidate options. */
@@ -35,6 +38,7 @@ export function DigimonPortrait({
   onActivate,
   actionLabel,
   onFocus,
+  onButtonDown,
   showName = false,
   showGeneration = false,
   emphasis = "option",
@@ -122,6 +126,7 @@ export function DigimonPortrait({
       style={{ padding: 2, ...style }}
       onActivate={onActivate}
       onGamepadFocus={onFocus}
+      onButtonDown={onButtonDown}
       onOKActionDescription={actionLabel}
     >
       {body}

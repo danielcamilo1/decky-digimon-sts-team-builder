@@ -4,6 +4,7 @@ import { useRef } from "react";
 import type { Chain, Digimon } from "../data/types";
 import { teamStore } from "../state/teamStore";
 import { IconDots, IconLock } from "../ui/icons";
+import { exitRight } from "../ui/nav";
 import { theme } from "../ui/theme";
 import { ChainStrip } from "./ChainStrip";
 
@@ -15,6 +16,8 @@ interface Props {
   selected: boolean;
   /** Called when the row body is activated — opens this line in the detail panel. */
   onOpen: () => void;
+  /** Target for d-pad right off the ⋮, which is the sidebar's right edge. */
+  onExitRight: () => HTMLElement | null;
 }
 
 /**
@@ -22,7 +25,7 @@ interface Props {
  * detail panel, and the ⋮ button at the end opens the line's own menu. Keeping them
  * separate means a tap on the row does the obvious thing instead of a menu appearing.
  */
-export function TeamLineRow({ chain, index, total, members, selected, onOpen }: Props) {
+export function TeamLineRow({ chain, index, total, members, selected, onOpen, onExitRight }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const dotsRef = useRef<HTMLDivElement>(null);
 
@@ -110,6 +113,7 @@ export function TeamLineRow({ chain, index, total, members, selected, onOpen }: 
         style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 30, flexShrink: 0 }}
         onActivate={openMenu}
         onGamepadFocus={select}
+        onButtonDown={exitRight(onExitRight)}
         onOKActionDescription="Line options"
         aria-label={`Options for line ${index + 1}`}
       >

@@ -1,4 +1,5 @@
 import { Focusable, NavEntryPositionPreferences, showModal } from "@decky/ui";
+import type { GamepadEvent } from "@decky/ui";
 import type { RefObject } from "react";
 import { useEffect, useState } from "react";
 
@@ -11,6 +12,7 @@ import { ChooseEvolutionModal } from "../modals/ChooseEvolutionModal";
 import { DigimonDetailModal } from "../modals/DigimonDetailModal";
 import { teamStore } from "../state/teamStore";
 import { IconEdit, IconLock, IconPlus } from "../ui/icons";
+import { exitLeft } from "../ui/nav";
 import { Divider, SectionLabel } from "../ui/primitives";
 import { attributeColor, theme } from "../ui/theme";
 
@@ -18,9 +20,9 @@ const TILE = 88;
 /** Column width shared by both rows so a chip sits directly under its tile. */
 const CELL = TILE + 24;
 const ARROW = 22;
-/** Room for the focus ring: tiles scale up and cast a shadow, and the strip is a
- * scroll container, so anything past the padding box gets clipped. */
-const STRIP_PAD = 22;
+/** Room for the focus ring. The strip scrolls horizontally, and a box with
+ * overflow-x also clips vertically, so the ring needs padding on every side. */
+const STRIP_PAD = 28;
 
 type Cell =
   | { kind: "add"; key: string }
@@ -33,6 +35,8 @@ interface Props {
   dex: Dex;
   /** Focused by the sidebar when a line is opened. */
   stripRef?: RefObject<HTMLDivElement | null>;
+  /** Target for d-pad left off the first cell — back to the team sidebar. */
+  onExitLeft?: () => HTMLElement | null;
 }
 
 /**
@@ -42,7 +46,7 @@ interface Props {
  * columns, so d-pad left/right walks along the line and down/up switches between
  * "which Digimon" and "which branch" — matching how they're placed on screen.
  */
-export function ChainEditor({ chain, index, dex, stripRef }: Props) {
+export function ChainEditor({ chain, index, dex, stripRef, onExitLeft }: Props) {
   const members = chainMembers(chain, dex.byId);
   const before = chain.locked ? [] : prependOptions(chain, dex.byId);
 
@@ -107,6 +111,11 @@ export function ChainEditor({ chain, index, dex, stripRef }: Props) {
   const branchesFor = (digimon: Digimon) => (chain.locked ? [] : evolutionsOf(digimon, dex.byId));
   const showChips = members.some((d) => branchesFor(d).length > 0);
 
+  // Only the leftmost target in each row hands focus back to the sidebar; the rest
+  // navigate normally along the line.
+  const goBack = onExitLeft ? exitLeft(onExitLeft) : undefined;
+  const firstChipKey = cells.find((c) => c.kind === "tile" && branchesFor(c.digimon).length > 0)?.key;
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12, height: "100%", minHeight: 0 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -154,6 +163,7 @@ export function ChainEditor({ chain, index, dex, stripRef }: Props) {
                     key={cell.key}
                     hint={`Add a pre-evolution before ${members[0]?.name ?? "this line"}`}
                     onActivate={openPrependPicker}
+                    onButtonDown={cell.key === cells[0].key ? goBack : undefined}
                   />
                 );
               }
@@ -168,6 +178,7 @@ export function ChainEditor({ chain, index, dex, stripRef }: Props) {
                     onActivate={() => openDetails(cell.digimon, cell.position)}
                     actionLabel="Details"
                     onFocus={() => setInspected(cell.digimon)}
+                    onButtonDown={cell.key === cells[0].key ? goBack : undefined}
                   />
                 </div>
               );
@@ -195,6 +206,7 @@ export function ChainEditor({ chain, index, dex, stripRef }: Props) {
                         style={{ display: "flex", alignItems: "center", gap: 4 }}
                         onActivate={() => openBranchPicker(cell.digimon, cell.position)}
                         onGamepadFocus={() => setInspected(cell.digimon)}
+                        onButtonDown={cell.key === firstChipKey ? goBack : undefined}
                         onOKActionDescription={isLast ? "Choose evolution" : "Change evolution"}
                         aria-label={`${isLast ? "Evolve" : "Change evolution of"} ${cell.digimon.name}`}
                       >
@@ -247,10 +259,25 @@ function ArrowCell() {
 }
 
 /** The leading "add a pre-evolution" cell, shaped like a tile so the row reads evenly. */
-function AddNode({ hint, onActivate }: { hint: string; onActivate: () => void }) {
+function AddNode({
+  hint,
+  onActivate,
+  onButtonDown,
+}: {
+  hint: string;
+  onActivate: () => void;
+  onButtonDown?: (evt: GamepadEvent) => void;
+}) {
   return (
     <div style={{ width: CELL, display: "flex", justifyContent: "center", flexShrink: 0 }}>
-      <Focusable className="dtb-tile" style={{ padding: 2 }} onActivate={onActivate} onOKActionDescription={hint} aria-label={hint}>
+      <Focusable
+        className="dtb-tile"
+        style={{ padding: 2 }}
+        onActivate={onActivate}
+        onButtonDown={onButtonDown}
+        onOKActionDescription={hint}
+        aria-label={hint}
+      >
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, width: TILE }}>
           <div
             style={{

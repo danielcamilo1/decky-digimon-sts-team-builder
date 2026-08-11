@@ -12,6 +12,7 @@ import { useDex } from "../state/useDex";
 import { GlobalStyles } from "../ui/GlobalStyles";
 import { IconDice, IconPlus, IconShare, IconTrash } from "../ui/icons";
 import { ActionButton, ButtonHints, Divider, EmptyState, ScrollArea, SectionLabel } from "../ui/primitives";
+import { exitRight, firstTarget } from "../ui/nav";
 import { theme } from "../ui/theme";
 import { ChainEditor } from "./ChainEditor";
 
@@ -20,9 +21,17 @@ export const TEAM_BUILDER_ROUTE = "/digimon-time-stranger-team-builder";
 export function TeamBuilderPage() {
   const { team, loaded } = useTeam();
   const { dex, error } = useDex();
-  // Lets the sidebar hand focus to the line strip when a line is opened. If Steam
-  // declines the focus call the selection has still changed, so nothing is lost.
+  // The two panels hand focus to each other explicitly: Steam's spatial search
+  // doesn't cross between them on its own (each is its own scroll container).
   const stripRef = useRef<HTMLDivElement>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+
+  /** First Digimon tile (or the leading "+") in the line strip. */
+  const editorEntry = () => firstTarget(stripRef.current, ".dtb-tile");
+  /** The selected line's body in the sidebar, falling back to the first line. */
+  const sidebarEntry = () =>
+    firstTarget(sidebarRef.current, ".dtb-selected .dtb-row-body") ??
+    firstTarget(sidebarRef.current, ".dtb-row-body");
 
   // The page can be closed by the system (Steam button, game launch), so don't wait
   // on the debounce timer to persist the last edit.
@@ -98,7 +107,11 @@ export function TeamBuilderPage() {
                 No evolution lines yet. Add one below, or roll a random team to start from something.
               </div>
             ) : (
-              <ScrollArea style={{ gap: 6, paddingRight: 4 }} navEntryPreferPosition={NavEntryPositionPreferences.MAINTAIN_Y}>
+              <ScrollArea
+                style={{ gap: 6, paddingRight: 4 }}
+                navEntryPreferPosition={NavEntryPositionPreferences.MAINTAIN_Y}
+                containerRef={sidebarRef}
+              >
                 {team.chains.map((chain, index) => (
                   <TeamLineRow
                     key={index}
@@ -107,7 +120,8 @@ export function TeamBuilderPage() {
                     total={team.chains.length}
                     members={chainMembers(chain, dex.byId)}
                     selected={index === team.selected}
-                    onOpen={() => stripRef.current?.focus()}
+                    onOpen={() => editorEntry()?.focus()}
+                    onExitRight={editorEntry}
                   />
                 ))}
               </ScrollArea>
@@ -122,7 +136,10 @@ export function TeamBuilderPage() {
                 navEntryPreferPosition={NavEntryPositionPreferences.MAINTAIN_X}
                 style={{ display: "flex", gap: 6 }}
               >
-                <Focusable style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 6 }}>
+                <Focusable
+                  navEntryPreferPosition={NavEntryPositionPreferences.MAINTAIN_Y}
+                  style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 6 }}
+                >
                   <ActionButton icon={<IconPlus />} onClick={openAdd} actionLabel="Add">
                     Add line
                   </ActionButton>
@@ -130,8 +147,16 @@ export function TeamBuilderPage() {
                     Share
                   </ActionButton>
                 </Focusable>
-                <Focusable style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 6 }}>
-                  <ActionButton icon={<IconDice />} onClick={rollRandom} actionLabel="Roll">
+                <Focusable
+                  navEntryPreferPosition={NavEntryPositionPreferences.MAINTAIN_Y}
+                  style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 6 }}
+                >
+                  <ActionButton
+                    icon={<IconDice />}
+                    onClick={rollRandom}
+                    actionLabel="Roll"
+                    onButtonDown={exitRight(editorEntry)}
+                  >
                     Random
                   </ActionButton>
                   <ActionButton
@@ -140,6 +165,7 @@ export function TeamBuilderPage() {
                     disabled={team.chains.length === 0}
                     onClick={() => teamStore.clear()}
                     actionLabel="Clear"
+                    onButtonDown={exitRight(editorEntry)}
                   >
                     Clear
                   </ActionButton>
@@ -153,7 +179,13 @@ export function TeamBuilderPage() {
           {/* --- editor ------------------------------------------------------ */}
           <div style={{ flex: 1, minWidth: 0, minHeight: 0 }}>
             {selected ? (
-              <ChainEditor chain={selected} index={team.selected} dex={dex} stripRef={stripRef} />
+              <ChainEditor
+                chain={selected}
+                index={team.selected}
+                dex={dex}
+                stripRef={stripRef}
+                onExitLeft={sidebarEntry}
+              />
             ) : (
               <EmptyState
                 title="Build your Time Stranger team"

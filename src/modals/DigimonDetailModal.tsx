@@ -67,7 +67,28 @@ export function DigimonDetailModal({ digimon, dex, line, closeModal }: Props) {
             }}
           />
           <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 10 }}>
-            <DigimonHeader digimon={digimon} />
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <DigimonHeader digimon={digimon} />
+              </div>
+              {/* The line action lives up here, not at the foot of the modal: it's the
+                  only focusable, so Steam focuses it on mount and scrolls it into view.
+                  At the bottom that opened the modal already scrolled past the header. */}
+              {line && !line.locked && (
+                <Focusable style={{ display: "flex", flexShrink: 0 }}>
+                  <ActionButton
+                    danger
+                    actionLabel={removeLabel(line)}
+                    onClick={() => {
+                      line.onRemove();
+                      closeModal?.();
+                    }}
+                  >
+                    {shortRemoveLabel(line)}
+                  </ActionButton>
+                </Focusable>
+              )}
+            </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
               <SectionLabel>How to evolve into {digimon.name}</SectionLabel>
               <EvolutionRequirements digimon={digimon} />
@@ -101,24 +122,6 @@ export function DigimonDetailModal({ digimon, dex, line, closeModal }: Props) {
           </div>
         </div>
 
-        {line && !line.locked && (
-          <div style={{ flexShrink: 0 }}>
-            <Divider />
-            <Focusable style={{ display: "flex", gap: 8, paddingTop: 12 }}>
-              <ActionButton
-                danger
-                actionLabel={removeLabel(line)}
-                onClick={() => {
-                  line.onRemove();
-                  closeModal?.();
-                }}
-              >
-                {removeLabel(line)}
-              </ActionButton>
-            </Focusable>
-          </div>
-        )}
-
         <div style={{ flexShrink: 0 }}>
           <ButtonHints hints={[["B", "Close"]]} />
         </div>
@@ -127,11 +130,19 @@ export function DigimonDetailModal({ digimon, dex, line, closeModal }: Props) {
   );
 }
 
+/** Spelled out for the footer legend, where there's room to be unambiguous. */
 function removeLabel({ position, length }: LineContext): string {
   if (length === 1) return "Remove this line";
   if (position === 0) return "Remove from the front of the line";
   if (position === length - 1) return "Remove from the end of the line";
   return "Cut the line here (drops everything after)";
+}
+
+/** Short enough to sit beside the Digimon's name. */
+function shortRemoveLabel({ position, length }: LineContext): string {
+  if (length === 1) return "Remove line";
+  if (position === 0 || position === length - 1) return "Remove";
+  return "Cut here";
 }
 
 function NeighbourRow({ label, members, empty }: { label: string; members: Digimon[]; empty: string }) {

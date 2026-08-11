@@ -8,6 +8,8 @@ It's a gamepad-native port of the
 [team builder](https://tools.diegogliarte.com/digimon/story-time-stranger/team-builder)
 from [diegogliarte/tools](https://github.com/diegogliarte/tools).
 
+[![Support me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/danielcamilo)
+
 ## What it does
 
 - **Build evolution lines.** Lay a line out left-to-right and change which branch it takes at
@@ -141,21 +143,34 @@ A couple of decisions worth knowing about:
 - **Trimming a middle Digimon keeps it** and cuts everything after, where the web tool drops
   it too. The remove action in the details modal spells out which it is.
 
-## Attribution
+## Thanks & attribution
 
-- Team builder concept, dataset and sprites: **[diegogliarte/tools](https://github.com/diegogliarte/tools)**
-  ([tools.diegogliarte.com](https://tools.diegogliarte.com)).
-- Underlying Digimon data and icons originate from
-  [Grindosaur](https://www.grindosaur.com/en/games/digimon-story-time-stranger).
-- *Digimon Story: Time Stranger* and all Digimon names and artwork are property of
-  Bandai Namco Entertainment. This is an unofficial fan tool with no affiliation.
+This plugin exists because **[Diego Gliarte](https://github.com/diegogliarte)** built the
+original team builder and made it genuinely great — the concept, the dataset and the sprites
+all come from **[diegogliarte/tools](https://github.com/diegogliarte/tools)**
+([tools.diegogliarte.com](https://tools.diegogliarte.com)). All I did was bring it to the
+Steam Deck's controller. Please go star his repo and check out his other tools — he's the one
+who did the hard part. 💙
 
-> **On redistribution:** the upstream `tools` repository ships **no license file**, so its
-> dataset and the sprites derived from Grindosaur are all-rights-reserved by default. This
-> repository bundles and therefore redistributes them. If either author objects, open an issue
-> and the assets will be removed — `scripts/prepare-data.mjs` regenerates them locally, so the
-> plugin can be built from a code-only tree. Explicit permission from diegogliarte (and a check
-> of Grindosaur's terms) is worth having before any submission to the Decky plugin store.
-> The plugin's own code is BSD-3-Clause; see `LICENSE`.
+The underlying Digimon data and icons come from
+[Grindosaur](https://www.grindosaur.com/en/games/digimon-story-time-stranger). *Digimon Story:
+Time Stranger*, and all Digimon names and artwork, are property of Bandai Namco Entertainment —
+this is an unofficial fan tool with no affiliation. If any of the original authors would
+prefer their work not be bundled here, open an issue and I'll take it out right away. The
+plugin's own code is BSD-3-Clause; see [LICENSE](LICENSE).
+
+## Support
+
+This plugin is free, and it's staying free — no ads, no paywalls, nothing to unlock.
+
+If you'd like to support someone, please make it
+**[Diego](https://github.com/diegogliarte)** first. His team builder is the heart of this
+thing; I just built a controller-friendly shell around it.
+
+And if you've got some left over and this made your Deck a little nicer, a coffee is always
+appreciated — but genuinely, no pressure. Enjoying it and telling a friend is more than
+enough. ☕
+
+[![Support me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/danielcamilo)
 
 Built on the [Decky plugin template](https://github.com/SteamDeckHomebrew/decky-plugin-template).
