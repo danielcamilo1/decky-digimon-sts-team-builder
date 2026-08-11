@@ -60,7 +60,7 @@ says so, and marks the branch currently taken.
 
 ### From a zip
 
-1. Copy `Digimon Time Stranger Team Builder.zip` to the Deck.
+1. Download the zip from the [latest release](https://github.com/danielcamilo1/decky-digimon-sts-team-builder/releases/latest) and copy it to the Deck.
 2. In Game Mode, open the **Decky** menu (⋯ button) → gear icon → **Developer** →
    enable *Developer Mode* if it isn't already → **Install Plugin from File**, and pick the zip.
 
@@ -80,7 +80,7 @@ container to compile native backends and vendor `py_modules`, and this plugin ha
 (`main.py` is plain stdlib Python).
 
 ```bash
-git clone <this repo>
+git clone https://github.com/danielcamilo1/decky-digimon-sts-team-builder.git
 cd decky-digimon-sts-team-builder
 
 # 1. Fetch the upstream dataset and generate assets/ (only needed once, or to update data)
@@ -150,11 +150,12 @@ A couple of decisions worth knowing about:
 - *Digimon Story: Time Stranger* and all Digimon names and artwork are property of
   Bandai Namco Entertainment. This is an unofficial fan tool with no affiliation.
 
-> **Before publishing this anywhere public** (the Decky plugin store, a public repo with the
-> assets committed): the upstream `tools` repository ships **no license file**, so its dataset
-> and the sprites derived from Grindosaur are all-rights-reserved by default. Redistributing
-> them — which this plugin does, since the assets are bundled — needs the authors' permission.
-> Getting an explicit OK from diegogliarte (and checking Grindosaur's terms) is the right
-> first step. The plugin's own code is BSD-3-Clause; see `LICENSE`.
+> **On redistribution:** the upstream `tools` repository ships **no license file**, so its
+> dataset and the sprites derived from Grindosaur are all-rights-reserved by default. This
+> repository bundles and therefore redistributes them. If either author objects, open an issue
+> and the assets will be removed — `scripts/prepare-data.mjs` regenerates them locally, so the
+> plugin can be built from a code-only tree. Explicit permission from diegogliarte (and a check
+> of Grindosaur's terms) is worth having before any submission to the Decky plugin store.
+> The plugin's own code is BSD-3-Clause; see `LICENSE`.
 
 Built on the [Decky plugin template](https://github.com/SteamDeckHomebrew/decky-plugin-template).
