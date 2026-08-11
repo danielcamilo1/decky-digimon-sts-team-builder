@@ -1,4 +1,4 @@
-# Digimon Time Stranger Team Builder
+# Decky Digimon Story Time Stranger Team Builder
 
 A [Decky Loader](https://github.com/SteamDeckHomebrew/decky-loader) plugin for planning
 *Digimon Story: Time Stranger* evolution lines on the Steam Deck, without alt-tabbing to a
@@ -69,7 +69,7 @@ says so, and marks the branch currently taken.
 Or, from a terminal in Desktop Mode:
 
 ```bash
-unzip "Digimon Time Stranger Team Builder.zip" -d ~/homebrew/plugins/
+unzip decky-digimon-sts-team-builder-v*.zip -d ~/homebrew/plugins/
 sudo systemctl restart plugin_loader
 ```
 
