@@ -28,6 +28,14 @@ export function DigimonHeader({ digimon }: { digimon: Digimon }) {
       <span style={{ fontSize: 12, color: theme.color.textDim }}>
         {digimon.generation} · {digimon.type}
       </span>
+      {/* Spelled out here, unlike the panel's compact meta line: the modal has the room,
+          and "Zealous" on its own next to a stage and an attribute doesn't say what it is. */}
+      {digimon.base_personality && (
+        <span style={{ fontSize: 12, color: theme.color.textDim }}>
+          <span style={{ color: theme.color.textFaint }}>Base personality </span>
+          {digimon.base_personality}
+        </span>
+      )}
       {digimon.ridable && (
         <span style={{ fontSize: 11, color: theme.color.textFaint, border: `1px solid ${theme.color.border}`, borderRadius: 999, padding: "1px 7px" }}>
           Ridable

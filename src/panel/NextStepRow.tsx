@@ -27,6 +27,7 @@ export function NextStepRow({ index, progress, onOpen, onAdvance }: Props) {
   if (!current) return null;
 
   const accent = next ? attributeColor(next.attribute) : theme.color.textFaint;
+  const personality = next?.base_personality?.trim();
 
   return (
     <Focusable
@@ -107,8 +108,28 @@ export function NextStepRow({ index, progress, onOpen, onAdvance }: Props) {
               >
                 {next.name}
               </span>
-              <span style={{ fontSize: 10, color: theme.color.textFaint }}>
+              {/* Stage and attribute describe what it is; the base personality is what
+                  you get on arrival, so it sits on the same line in the brighter dim
+                  colour rather than costing the row a third line. */}
+              <span
+                style={{
+                  fontSize: 10,
+                  color: theme.color.textFaint,
+                  minWidth: 0,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
                 {generationShort(next.generation)} · {next.attribute}
+                {personality && (
+                  <>
+                    {" · "}
+                    <span style={{ color: theme.color.textDim }} title={`Base personality: ${personality}`}>
+                      {personality}
+                    </span>
+                  </>
+                )}
               </span>
             </div>
           </div>

@@ -5,6 +5,28 @@ All notable changes to this plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] — 2026-08-12
+
+### Added
+
+- **The *Next up* view names the base personality you're evolving into.** Each row's next
+  evolution now reads `stage · attribute · personality`, so you can see that the Mega you're
+  working towards arrives *Zealous* before you commit the Agent Rank to it. It sits on the
+  line that was already there, so the rows don't get taller and six lines still fit in the
+  panel.
+- **Base personality in the details modal too.** Pressing **A** on a Digimon in the builder
+  now shows its base personality in the header, beside its stage, attribute and type — so
+  the personality you saw in *Next up* is there when you open the evolution to check it.
+- **And on the branch picker.** Each option in *Change* / *Evolve* lists the personality it
+  arrives with next to its requirements, which is the moment you're actually choosing
+  between branches.
+
+### Notes
+
+- The personality shown is the Digimon's *base* personality, the one it evolves in with —
+  not whatever the Digimon currently has. It was already in the shipped dataset, so this
+  needs no data regeneration and doesn't change the bundle or `digimon.json`.
+
 ## [1.2.0] — 2026-08-12
 
 ### Added

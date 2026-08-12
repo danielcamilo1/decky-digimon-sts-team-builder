@@ -68,6 +68,14 @@ export function ChooseEvolutionModal({ source, options, currentId, direction, on
                     <span style={{ fontSize: 11, color: theme.color.textDim }}>
                       {option.generation} · {option.type}
                     </span>
+                    {/* The personality each branch arrives with is part of choosing one,
+                        so it's on the row rather than a modal deeper. */}
+                    {option.base_personality && (
+                      <span style={{ fontSize: 11, color: theme.color.textDim }}>
+                        <span style={{ color: theme.color.textFaint }}>personality </span>
+                        {option.base_personality}
+                      </span>
+                    )}
                     {current && (
                       <span
                         style={{

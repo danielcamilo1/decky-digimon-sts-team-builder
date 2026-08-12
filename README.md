@@ -15,10 +15,10 @@ from [diegogliarte/tools](https://github.com/diegogliarte/tools).
 - **Build evolution lines.** Lay a line out left-to-right and change which branch it takes at
   any point, or extend it backwards to the Digimon it hatches from.
 - **See the requirements.** Every Digimon shows the Agent Rank, stat, item or Jogress
-  conditions needed to evolve into it, plus Lv 99 base stats.
+  conditions needed to evolve into it, plus its base personality and Lv 99 base stats.
 - **Track where you are.** Mark the stage each line has actually reached, and the Quick
   Access panel's *Next up* view turns the team into a to-do list: the evolution every line
-  is working towards and exactly what it needs.
+  is working towards, exactly what it needs, and the base personality it arrives with.
 - **Random teams.** Roll six full lines from In-Training I upward, never reusing a Digimon.
   Lock the lines you like and reroll the rest.
 - **Share codes.** Export and import teams in the *same format the website uses*, so a team
@@ -33,7 +33,7 @@ Decky gives a plugin two very different amounts of room, so the plugin uses both
 
 | Surface | What lives there |
 | --- | --- |
-| **Quick Access panel** (~310 px wide, over a running game) | Two switchable views: *Lines*, an overview of your team — every line with its name, stage count, lock state and sprites — and *Next up*, the evolution each line is working towards with its requirements. Plus *Random Team* and *Share*. Picking a line opens it in the builder, with focus already on that line. |
+| **Quick Access panel** (~310 px wide, over a running game) | Two switchable views: *Lines*, an overview of your team — every line with its name, stage count, lock state and sprites — and *Next up*, the evolution each line is working towards with its requirements and base personality. Plus *Random Team* and *Share*. Picking a line opens it in the builder, with focus already on that line. |
 | **Full-screen page** (`/digimon-time-stranger-team-builder`) | The actual builder: the team list on the left, the selected evolution line laid out horizontally on the right. |
 
 The panel deliberately doesn't try to be an editor — there isn't room for an evolution graph
@@ -140,8 +140,9 @@ A couple of decisions worth knowing about:
   check, so plain `<img src>` works. Inlining 5.7 MB of sprites as data URIs would bloat the
   JS bundle that Steam parses at startup; this way the bundle stays ~60 KB and sprites load
   lazily.
-- **The dataset is trimmed.** Personality tables and skill lists are dropped during
-  `prepare-data`, taking `digimon.json` from ~975 KB to ~230 KB.
+- **The dataset is trimmed.** The possible-personality tables and skill lists are dropped
+  during `prepare-data`, taking `digimon.json` from ~975 KB to ~230 KB. Each Digimon's single
+  `base_personality` stays, which is what *Next up* shows.
 - **`src/data/digimon.ts` has no Decky or browser imports.** The evolution-graph logic is
   pure so it can be run directly against `assets/data/digimon.json`.
 - **Editing happens through modals, not side columns.** Tapping a tile opens that Digimon's
