@@ -5,6 +5,28 @@ All notable changes to this plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] — 2026-08-12
+
+### Added
+
+- **Mark where you are in a line.** Each evolution line can now carry the stage you've
+  actually reached: press **Y** on a Digimon in the builder (or use *I'm here* in its details
+  modal) and it's badged **NOW**. Pressing Y on the marked stage again clears it, as does
+  *Clear the current-stage mark* in the line's ⋮ menu. The mark works on locked lines too —
+  the lock protects a line's members, and where you've got to isn't one of them.
+- **A *Next up* view in the Quick Access panel.** The panel now switches between two views:
+  *Lines*, the team overview it has always shown, and *Next up*, which gives each line the
+  evolution it's working towards and the Agent Rank, stat, item or Jogress requirements to
+  get there — the thing you actually want mid-battle. Pressing **Y** on a line there marks
+  that evolution as reached without opening the builder.
+
+### Notes
+
+- Lines with no mark are read as sitting on their first stage, and say so, so *Next up* is
+  useful before anything has been marked.
+- Share codes are unchanged, and stay byte-for-byte compatible with the website: the mark is
+  a note about your save, not part of a team plan, so it doesn't travel in a share code.
+
 ## [1.1.0] — 2026-08-11
 
 ### Added

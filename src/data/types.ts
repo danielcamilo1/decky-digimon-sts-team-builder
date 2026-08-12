@@ -32,6 +32,12 @@ export interface Digimon {
 export interface Chain {
   ids: number[];
   locked: boolean;
+  /**
+   * The stage the player has actually reached, as a Digimon id rather than a position:
+   * prepending a pre-evolution shifts every position but not the id. Unset means the
+   * line hasn't been marked, and everything that reads it falls back to the head.
+   */
+  current?: number;
 }
 
 export interface TeamState {

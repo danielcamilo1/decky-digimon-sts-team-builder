@@ -94,6 +94,24 @@ export function IconEdit(props: IconProps) {
   );
 }
 
+/** Marks the stage of a line the player has actually reached. */
+export function IconFlag({ size = 14, color = "currentColor" }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={{ display: "block", flexShrink: 0 }} aria-hidden>
+      <path d="M6 21V4" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <path d="M6 4h11l-2.2 4L17 12H6V4Z" fill={color} />
+    </svg>
+  );
+}
+
+export function IconCheck(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="m5 12.5 4.5 4.5L19 7" />
+    </Svg>
+  );
+}
+
 export function IconInfo(props: IconProps) {
   return (
     <Svg {...props}>

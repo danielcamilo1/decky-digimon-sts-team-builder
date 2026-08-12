@@ -87,6 +87,56 @@ const CSS = `
   font-weight: 600;
 }
 
+/* --- segmented view switch (Quick Access panel) --------------------------- */
+.dtb-seg {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 4px;
+  text-align: center;
+  border-radius: ${theme.radius.md}px;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.05);
+  color: ${theme.color.textDim};
+  font-size: 12px;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background-color 90ms ease-out, color 90ms ease-out, border-color 90ms ease-out;
+  outline: none;
+}
+/* The selected view stays legible while focus is elsewhere; focus wins over it. */
+.dtb-seg.dtb-seg-on {
+  background: ${theme.color.accentDim};
+  border-color: ${theme.color.borderStrong};
+  color: ${theme.color.text};
+  font-weight: 600;
+}
+.dtb-seg.gpfocus {
+  background: ${theme.color.accent};
+  border-color: ${theme.color.accent};
+  color: #04121a;
+  font-weight: 600;
+}
+
+/* --- requirement pills ---------------------------------------------------- */
+.dtb-req {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  max-width: 100%;
+  min-width: 0;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid ${theme.color.border};
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 11px;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* --- text buttons --------------------------------------------------------- */
 .dtb-action {
   display: flex;

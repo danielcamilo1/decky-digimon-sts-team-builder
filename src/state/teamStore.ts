@@ -124,7 +124,24 @@ class TeamStore {
       return;
     }
     this.update({
-      chains: this.state.chains.map((chain, i) => (i === index ? { ...chain, ids } : chain)),
+      chains: this.state.chains.map((chain, i) => (i === index ? withIds(chain, ids) : chain)),
+    });
+  }
+
+  /**
+   * Marks the stage the line has actually reached, or clears the mark with `null`.
+   *
+   * Allowed on locked lines: the lock keeps a line's members through a reroll, and
+   * where you are in it isn't a member change.
+   */
+  setCurrent(index: number, id: number | null) {
+    const chain = this.state.chains[index];
+    if (!chain) return;
+    if (id !== null && !chain.ids.includes(id)) return;
+    if ((chain.current ?? null) === id) return;
+
+    this.update({
+      chains: this.state.chains.map((c, i) => (i === index ? withCurrent(c, id) : c)),
     });
   }
 
@@ -189,6 +206,22 @@ class TeamStore {
   clear() {
     this.update({ chains: [], selected: 0 });
   }
+}
+
+/** Applies new members, dropping a progress mark the edit has removed from the line. */
+function withIds(chain: Chain, ids: number[]): Chain {
+  const next: Chain = { ...chain, ids };
+  if (next.current !== undefined && !ids.includes(next.current)) delete next.current;
+  return next;
+}
+
+function withCurrent(chain: Chain, id: number | null): Chain {
+  if (id === null) {
+    const next = { ...chain };
+    delete next.current;
+    return next;
+  }
+  return { ...chain, current: id };
 }
 
 function clampIndex(index: number, length: number): number {

@@ -1,27 +1,40 @@
 import { toaster } from "@decky/api";
-import { ButtonItem, Navigation, PanelSection, PanelSectionRow, showModal } from "@decky/ui";
+import { ButtonItem, Focusable, Navigation, PanelSection, PanelSectionRow, showModal } from "@decky/ui";
 
 import { ChainStrip } from "../components/ChainStrip";
-import { chainLabel, chainMembers, randomTeam } from "../data/digimon";
+import { chainLabel, chainMembers, lineProgress, randomTeam } from "../data/digimon";
 import { TEAM_SIZE } from "../data/types";
 import { ShareModal } from "../modals/ShareModal";
 import { TEAM_BUILDER_ROUTE } from "../pages/TeamBuilderPage";
 import { requestOpen } from "../state/openIntent";
+import type { PanelView } from "../state/panelView";
+import { setPanelView, usePanelView } from "../state/panelView";
 import { teamStore, useTeam } from "../state/teamStore";
 import { useDex } from "../state/useDex";
 import { GlobalStyles } from "../ui/GlobalStyles";
-import { IconDice, IconLock, IconShare } from "../ui/icons";
+import { IconCheck, IconDice, IconLock, IconShare } from "../ui/icons";
 import { theme } from "../ui/theme";
+import { NextStepRow } from "./NextStepRow";
+
+const VIEWS: { value: PanelView; label: string; title: string }[] = [
+  { value: "lines", label: "Lines", title: "Your team" },
+  { value: "next", label: "Next up", title: "What's next" },
+];
 
 /**
  * The Quick Access column is ~310px wide and shares the screen with a running game, so
- * this is the team's overview: every evolution line at a glance, plus the two actions
- * worth doing without leaving the game. The actual building happens on the full-screen
- * route, which a line opens straight into.
+ * it holds the two things worth reading without leaving the game, on a switch:
+ *
+ * - *Lines* — the team at a glance, every evolution line and its sprites.
+ * - *Next up* — for each line, the evolution it's working towards and what that needs,
+ *   read from the stage you've marked in the builder.
+ *
+ * The actual building happens on the full-screen route, which a line opens straight into.
  */
 export function QuickAccessPanel() {
   const { team, loaded } = useTeam();
   const { dex, error } = useDex();
+  const view = usePanelView();
 
   const openBuilder = () => {
     Navigation.CloseSideMenus();
@@ -35,11 +48,30 @@ export function QuickAccessPanel() {
     openBuilder();
   };
 
+  const ready = !error && loaded && !!dex;
+  const section = VIEWS.find((v) => v.value === view) ?? VIEWS[0];
+
   return (
     <div className="dtb-root">
       <GlobalStyles />
 
-      <PanelSection title="Your team">
+      <PanelSection title={section.title}>
+        <PanelSectionRow>
+          <Focusable style={{ display: "flex", gap: 6 }}>
+            {VIEWS.map((option) => (
+              <Focusable
+                key={option.value}
+                className={`dtb-seg${option.value === view ? " dtb-seg-on" : ""}`}
+                onActivate={() => setPanelView(option.value)}
+                onOKActionDescription={`Show ${option.label}`}
+                aria-label={`Show ${option.label}`}
+              >
+                {option.label}
+              </Focusable>
+            ))}
+          </Focusable>
+        </PanelSectionRow>
+
         {error && (
           <PanelSectionRow>
             <div style={{ fontSize: 12, color: theme.color.danger }}>Couldn't load the Digimon data.</div>
@@ -52,7 +84,7 @@ export function QuickAccessPanel() {
           </PanelSectionRow>
         )}
 
-        {!error && loaded && dex && team.chains.length === 0 && (
+        {ready && team.chains.length === 0 && (
           <PanelSectionRow>
             <div style={{ fontSize: 12, color: theme.color.textDim, lineHeight: 1.45 }}>
               No evolution lines yet. Open the builder to plan one, or roll a random team below.
@@ -60,17 +92,18 @@ export function QuickAccessPanel() {
           </PanelSectionRow>
         )}
 
-        {!error && loaded && dex && team.chains.length > 0 && (
+        {ready && team.chains.length > 0 && (
           <PanelSectionRow>
             <div style={{ fontSize: 11, color: theme.color.textFaint, lineHeight: 1.45 }}>
-              {team.chains.length} of {TEAM_SIZE} evolution lines. Pick one to open it in the builder.
+              {view === "lines"
+                ? `${team.chains.length} of ${TEAM_SIZE} evolution lines. Pick one to open it in the builder.`
+                : "What each line evolves into next, and what it takes. Y marks one as reached."}
             </div>
           </PanelSectionRow>
         )}
 
-        {!error &&
-          loaded &&
-          dex &&
+        {ready &&
+          view === "lines" &&
           team.chains.map((chain, index) => {
             const members = chainMembers(chain, dex.byId);
             return (
@@ -105,9 +138,37 @@ export function QuickAccessPanel() {
                         {members.length} stage{members.length === 1 ? "" : "s"}
                       </span>
                     </div>
-                    <ChainStrip members={members} size={28} max={5} />
+                    <ChainStrip members={members} size={28} max={5} currentId={chain.current} />
                   </div>
                 </ButtonItem>
+              </PanelSectionRow>
+            );
+          })}
+
+        {/* Custom rows rather than ButtonItem: these carry a second action (advancing
+            the mark), and ButtonItem takes no footer-legend props. */}
+        {ready &&
+          view === "next" &&
+          team.chains.map((chain, index) => {
+            const progress = lineProgress(chain, dex.byId);
+            return (
+              <PanelSectionRow key={index}>
+                <NextStepRow
+                  index={index}
+                  progress={progress}
+                  onOpen={() => openLine(index)}
+                  onAdvance={() => {
+                    // Advanced through the resolved line rather than through the raw
+                    // ids, so the mark lands on exactly what the row is showing.
+                    if (!progress.next) return;
+                    teamStore.setCurrent(index, progress.next.id);
+                    toaster.toast({
+                      title: `Now on ${progress.next.name}`,
+                      body: `Line ${index + 1}`,
+                      icon: <IconCheck />,
+                    });
+                  }}
+                />
               </PanelSectionRow>
             );
           })}

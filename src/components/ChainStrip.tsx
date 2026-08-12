@@ -10,13 +10,16 @@ interface Props {
   /** Off when the sprites are alternatives (e.g. "evolves into any of these")
    * rather than an ordered line. */
   arrows?: boolean;
+  /** Ringed as the stage the line has reached. There's no room for a label at this
+   * size, so the mark is the ring. */
+  currentId?: number;
 }
 
 /**
  * Read-only summary of an evolution line: sprite › sprite › sprite. Used in the team
  * sidebar and the Quick Access panel, where there is no room for the full editor.
  */
-export function ChainStrip({ members, size = 34, max, arrows = true }: Props) {
+export function ChainStrip({ members, size = 34, max, arrows = true, currentId }: Props) {
   const shown = max ? members.slice(0, max) : members;
   const hidden = members.length - shown.length;
 
@@ -31,11 +34,12 @@ export function ChainStrip({ members, size = 34, max, arrows = true }: Props) {
             alt={digimon.name}
             width={size}
             height={size}
-            title={digimon.name}
+            title={digimon.id === currentId ? `${digimon.name} — you're here` : digimon.name}
             style={{
               display: "block",
               borderRadius: theme.radius.sm,
               background: `linear-gradient(160deg, ${attributeColor(digimon.attribute)}30, rgba(10, 15, 22, 0.75))`,
+              boxShadow: digimon.id === currentId ? `0 0 0 2px ${theme.color.accent}` : undefined,
               flexShrink: 0,
             }}
           />

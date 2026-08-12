@@ -43,6 +43,9 @@ export function TeamLineRow({ chain, index, total, members, selected, onOpen, on
         <MenuItem onSelected={() => teamStore.toggleLock(index)}>
           {chain.locked ? "Unlock line" : "Lock line (kept when rolling a random team)"}
         </MenuItem>
+        {chain.current !== undefined && (
+          <MenuItem onSelected={() => teamStore.setCurrent(index, null)}>Clear the current-stage mark</MenuItem>
+        )}
         <MenuSeparator />
         <MenuItem tone="destructive" onSelected={() => teamStore.removeChain(index)}>
           Remove line
@@ -103,7 +106,7 @@ export function TeamLineRow({ chain, index, total, members, selected, onOpen, on
             </span>
           )}
         </div>
-        <ChainStrip members={members} size={34} max={7} />
+        <ChainStrip members={members} size={34} max={7} currentId={chain.current} />
       </Focusable>
 
       <Focusable

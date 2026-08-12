@@ -1,6 +1,6 @@
 {
   "name": "decky-digimon-sts-team-builder",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Digimon Story: Time Stranger team builder for Decky Loader",
   "type": "module",
   "scripts": {

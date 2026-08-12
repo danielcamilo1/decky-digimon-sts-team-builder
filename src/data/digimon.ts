@@ -45,6 +45,45 @@ export function chainLabel(members: Digimon[]): string {
   return head.id === tail.id ? tail.name : `${head.name} → ${tail.name}`;
 }
 
+export interface LineProgress {
+  members: Digimon[];
+  /** Position in the line the player is at. */
+  index: number;
+  current: Digimon | null;
+  /** The stage after `current` — what the line is working towards. */
+  next: Digimon | null;
+  /** False when the line carries no mark and `current` is just the head by default. */
+  marked: boolean;
+}
+
+/**
+ * Where a line is and what comes next. An unmarked line is treated as sitting on its
+ * first stage, so the "what's next" view says something useful before anything has been
+ * marked; `marked` lets the UI tell the two apart. A mark left behind by a trim that
+ * removed it is treated as unmarked.
+ */
+export function lineProgress(chain: Chain, byId: Map<number, Digimon>): LineProgress {
+  const members = chainMembers(chain, byId);
+  const at = chain.current === undefined ? -1 : members.findIndex((m) => m.id === chain.current);
+  const index = at === -1 ? 0 : at;
+  return {
+    members,
+    index,
+    current: members[index] ?? null,
+    next: members[index + 1] ?? null,
+    marked: at !== -1,
+  };
+}
+
+/** Dataset requirement keys carry their source in the name; the surfaces that show them
+ * are narrow, and the source is obvious from the value. */
+export function shortRequirement(key: string): string {
+  if (key.endsWith("(Agent Skills)")) return key.slice(0, -"(Agent Skills)".length).trim();
+  if (key === "Req. Item") return "Item";
+  if (key.startsWith("Jogress Partner")) return key.replace("Jogress Partner #", "Partner ");
+  return key;
+}
+
 export function preEvolutionsOf(digimon: Digimon, byId: Map<number, Digimon>): Digimon[] {
   return resolve(digimon.pre_evolutions, byId);
 }

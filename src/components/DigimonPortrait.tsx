@@ -25,8 +25,13 @@ interface Props {
   onFocus?: () => void;
   /** Used to hand focus to another panel on a d-pad press. See ui/nav.ts. */
   onButtonDown?: (evt: GamepadEvent) => void;
+  onSecondaryButton?: (evt: GamepadEvent) => void;
+  /** Footer legend text for the secondary button while this tile has focus. */
+  secondaryLabel?: string;
   showName?: boolean;
   showGeneration?: boolean;
+  /** Badges this tile as the stage the line has reached. */
+  current?: boolean;
   /** Ring emphasis for line members vs. candidate options. */
   emphasis?: "member" | "option";
   style?: CSSProperties;
@@ -39,8 +44,11 @@ export function DigimonPortrait({
   actionLabel,
   onFocus,
   onButtonDown,
+  onSecondaryButton,
+  secondaryLabel,
   showName = false,
   showGeneration = false,
+  current = false,
   emphasis = "option",
   style,
 }: Props) {
@@ -62,6 +70,10 @@ export function DigimonPortrait({
         border: `1px solid ${emphasis === "member" ? accent : theme.color.border}`,
         boxSizing: "border-box",
         overflow: "hidden",
+        // Deliberately not the attribute colour: the mark has to stand out from the
+        // tint every tile already carries.
+        outline: current ? `2px solid ${theme.color.accent}` : undefined,
+        outlineOffset: -1,
       }}
     >
       <img
@@ -72,6 +84,24 @@ export function DigimonPortrait({
         height={dims.box - 2}
         style={{ display: "block", width: "100%", height: "100%" }}
       />
+      {current && dims.badge > 0 && (
+        <div
+          style={{
+            position: "absolute",
+            right: 0,
+            top: 0,
+            padding: "1px 4px",
+            fontSize: dims.badge,
+            fontWeight: 800,
+            letterSpacing: 0.5,
+            color: "#04121a",
+            background: theme.color.accent,
+            borderBottomLeftRadius: theme.radius.sm,
+          }}
+        >
+          NOW
+        </div>
+      )}
       {showGeneration && dims.badge > 0 && (
         <div
           style={{
@@ -127,7 +157,9 @@ export function DigimonPortrait({
       onActivate={onActivate}
       onGamepadFocus={onFocus}
       onButtonDown={onButtonDown}
+      onSecondaryButton={onSecondaryButton}
       onOKActionDescription={actionLabel}
+      onSecondaryActionDescription={secondaryLabel}
     >
       {body}
     </Focusable>

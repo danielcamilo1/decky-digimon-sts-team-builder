@@ -4,6 +4,10 @@ import type { Chain } from "./types";
  * Share codes are byte-for-byte compatible with diegogliarte's web team builder, so a
  * team built on the Deck can be pasted into the site and vice versa: base64url of
  * JSON.stringify([{ ids, locked }]).
+ *
+ * `current` — which stage of a line you've reached — is deliberately not part of that
+ * payload: it's this plugin's own idea, and a shared team is a plan rather than a save.
+ * normalizeChains still reads it, because the same function parses the local save file.
  */
 
 function normalizeChain(value: unknown): Chain | null {
@@ -18,11 +22,17 @@ function normalizeChain(value: unknown): Chain | null {
   if (!Array.isArray(chain.ids) || !chain.ids.every((id) => typeof id === "number")) return null;
   if (chain.ids.length === 0) return null;
 
-  return {
+  const normalized: Chain = {
     ids: chain.ids,
     // Older versions locked each end of a line independently.
     locked: Boolean(chain.locked || (chain.leftLocked && chain.rightLocked)),
   };
+  // Kept only when it still points at a member of the line — a code from the website
+  // won't carry one at all.
+  if (typeof chain.current === "number" && chain.ids.includes(chain.current)) {
+    normalized.current = chain.current;
+  }
+  return normalized;
 }
 
 export function normalizeChains(value: unknown): Chain[] | null {

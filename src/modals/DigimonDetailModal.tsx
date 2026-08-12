@@ -8,6 +8,7 @@ import type { Dex } from "../data/digimon";
 import { evolutionsOf, preEvolutionsOf } from "../data/digimon";
 import type { Digimon } from "../data/types";
 import { GlobalStyles } from "../ui/GlobalStyles";
+import { IconFlag } from "../ui/icons";
 import { ActionButton, ButtonHints, Divider, SectionLabel } from "../ui/primitives";
 import { attributeColor, theme } from "../ui/theme";
 
@@ -16,7 +17,10 @@ export interface LineContext {
   position: number;
   length: number;
   locked: boolean;
+  /** Whether this is the stage the line is marked as having reached. */
+  isCurrent: boolean;
   onRemove: () => void;
+  onToggleCurrent: () => void;
 }
 
 interface Props {
@@ -74,18 +78,33 @@ export function DigimonDetailModal({ digimon, dex, line, closeModal }: Props) {
               {/* The line action lives up here, not at the foot of the modal: it's the
                   only focusable, so Steam focuses it on mount and scrolls it into view.
                   At the bottom that opened the modal already scrolled past the header. */}
-              {line && !line.locked && (
-                <Focusable style={{ display: "flex", flexShrink: 0 }}>
+              {line && (
+                <Focusable style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                  {/* Offered on locked lines too: the lock protects a line's members,
+                      and where you've got to isn't one of them. Both actions close the
+                      modal, which is rendered once with the values it was given. */}
                   <ActionButton
-                    danger
-                    actionLabel={removeLabel(line)}
+                    icon={<IconFlag />}
+                    actionLabel={line.isCurrent ? "Clear the current-stage mark" : "Mark this as where you are"}
                     onClick={() => {
-                      line.onRemove();
+                      line.onToggleCurrent();
                       closeModal?.();
                     }}
                   >
-                    {shortRemoveLabel(line)}
+                    {line.isCurrent ? "Clear current" : "I'm here"}
                   </ActionButton>
+                  {!line.locked && (
+                    <ActionButton
+                      danger
+                      actionLabel={removeLabel(line)}
+                      onClick={() => {
+                        line.onRemove();
+                        closeModal?.();
+                      }}
+                    >
+                      {shortRemoveLabel(line)}
+                    </ActionButton>
+                  )}
                 </Focusable>
               )}
             </div>

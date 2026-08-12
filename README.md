@@ -16,6 +16,9 @@ from [diegogliarte/tools](https://github.com/diegogliarte/tools).
   any point, or extend it backwards to the Digimon it hatches from.
 - **See the requirements.** Every Digimon shows the Agent Rank, stat, item or Jogress
   conditions needed to evolve into it, plus Lv 99 base stats.
+- **Track where you are.** Mark the stage each line has actually reached, and the Quick
+  Access panel's *Next up* view turns the team into a to-do list: the evolution every line
+  is working towards and exactly what it needs.
 - **Random teams.** Roll six full lines from In-Training I upward, never reusing a Digimon.
   Lock the lines you like and reroll the rest.
 - **Share codes.** Export and import teams in the *same format the website uses*, so a team
@@ -30,7 +33,7 @@ Decky gives a plugin two very different amounts of room, so the plugin uses both
 
 | Surface | What lives there |
 | --- | --- |
-| **Quick Access panel** (~310 px wide, over a running game) | An overview of your team — every line with its name, stage count, lock state and sprites — plus *Random Team* and *Share*. Picking a line opens it in the builder, with focus already on that line. |
+| **Quick Access panel** (~310 px wide, over a running game) | Two switchable views: *Lines*, an overview of your team — every line with its name, stage count, lock state and sprites — and *Next up*, the evolution each line is working towards with its requirements. Plus *Random Team* and *Share*. Picking a line opens it in the builder, with focus already on that line. |
 | **Full-screen page** (`/digimon-time-stranger-team-builder`) | The actual builder: the team list on the left, the selected evolution line laid out horizontally on the right. |
 
 The panel deliberately doesn't try to be an editor — there isn't room for an evolution graph
@@ -43,11 +46,13 @@ evolution does, so the d-pad moves along it without any mode switching.
 
 | Input | Action |
 | --- | --- |
-| **A** on a line in the Quick Access overview | Open the builder with that line already focused |
+| **A** on a line in the Quick Access panel | Open the builder with that line already focused |
+| **Y** on a line in *Next up* | Mark the evolution it's working towards as reached |
 | **D-pad up/down** in the team list | Move between evolution lines (the detail panel follows) |
 | **A** on a line row | Open that line in the detail panel |
 | **A** on the row's **⋮** | Line menu: move up/down, lock, remove |
 | **A** on a Digimon tile | Open its details — stats, requirements, neighbours, and remove |
+| **Y** on a Digimon tile | Mark it as the stage you're on (again to clear it) |
 | **A** on **Change** / **Evolve** under a tile | Pick which evolution the line takes from there |
 | **A** on the leading **+** | Add a pre-evolution to the front of the line |
 | **Secondary button** on a line row | Toggle lock |
@@ -120,10 +125,10 @@ assets/
 src/
   data/       types, pure evolution-graph logic, share codes, asset URLs
   state/      team store (observable + debounced persistence), dex loader,
-              panel → page hand-off
+              panel → page hand-off, which panel view is showing
   components/ portrait, chain strip, detail panels
   pages/      full-screen route and the line editor
-  panel/      Quick Access panel (the team overview)
+  panel/      Quick Access panel: the team overview and the "next up" rows
   modals/     add-Digimon browser, share/import
   ui/         theme tokens, focus CSS, inline SVG icons, primitives
 ```
@@ -148,6 +153,11 @@ A couple of decisions worth knowing about:
   focus starts.
 - **Trimming a middle Digimon keeps it** and cuts everything after, where the web tool drops
   it too. The remove action in the details modal spells out which it is.
+- **Where you are in a line is stored as a Digimon id, not a position.** Prepending a
+  pre-evolution shifts every position in the line but no ids, so the mark stays put; an edit
+  that removes the marked Digimon drops the mark instead of silently moving it. It's also
+  the one piece of state that isn't in a share code — a shared team is a plan, not a save,
+  and leaving it out keeps codes identical to the ones the website emits.
 
 ## Thanks & attribution
 

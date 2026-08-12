@@ -6,12 +6,12 @@ import { useEffect, useState } from "react";
 import { EvolutionRequirements } from "../components/DigimonDetails";
 import { DigimonPortrait } from "../components/DigimonPortrait";
 import type { Dex } from "../data/digimon";
-import { chainMembers, evolutionsOf, prependOptions } from "../data/digimon";
+import { evolutionsOf, lineProgress, prependOptions } from "../data/digimon";
 import type { Chain, Digimon } from "../data/types";
 import { ChooseEvolutionModal } from "../modals/ChooseEvolutionModal";
 import { DigimonDetailModal } from "../modals/DigimonDetailModal";
 import { teamStore } from "../state/teamStore";
-import { IconEdit, IconLock, IconPlus } from "../ui/icons";
+import { IconEdit, IconFlag, IconLock, IconPlus } from "../ui/icons";
 import { exitLeft } from "../ui/nav";
 import { Divider, SectionLabel } from "../ui/primitives";
 import { attributeColor, theme } from "../ui/theme";
@@ -47,11 +47,19 @@ interface Props {
  * "which Digimon" and "which branch" — matching how they're placed on screen.
  */
 export function ChainEditor({ chain, index, dex, stripRef, onExitLeft }: Props) {
-  const members = chainMembers(chain, dex.byId);
+  const progress = lineProgress(chain, dex.byId);
+  const members = progress.members;
   const before = chain.locked ? [] : prependOptions(chain, dex.byId);
 
   const tail = members.at(-1) ?? null;
   const [inspected, setInspected] = useState<Digimon | null>(tail);
+
+  /** A toggle: marking the stage that's already marked clears the line's mark. */
+  const toggleCurrent = (digimon: Digimon) =>
+    teamStore.setCurrent(index, chain.current === digimon.id ? null : digimon.id);
+
+  const currentLabel = (digimon: Digimon) =>
+    chain.current === digimon.id ? "Clear the current-stage mark" : `Mark ${digimon.name} as where you are`;
 
   // Follow the selection when the user switches lines or edits this one.
   useEffect(() => {
@@ -67,7 +75,9 @@ export function ChainEditor({ chain, index, dex, stripRef, onExitLeft }: Props) 
           position,
           length: members.length,
           locked: chain.locked,
+          isCurrent: chain.current === digimon.id,
           onRemove: () => teamStore.trimAt(index, digimon.id),
+          onToggleCurrent: () => toggleCurrent(digimon),
         }}
       />,
     );
@@ -118,11 +128,25 @@ export function ChainEditor({ chain, index, dex, stripRef, onExitLeft }: Props) 
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12, height: "100%", minHeight: 0 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
         <SectionLabel>Evolution line {index + 1}</SectionLabel>
         {chain.locked && (
           <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: theme.color.locked }}>
             <IconLock size={10} /> Locked — unlock from the line's ⋮ menu to edit it
+          </span>
+        )}
+        {/* Confirms what the panel's "Next up" view will say about this line. */}
+        {progress.marked && progress.current ? (
+          <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: theme.color.accent }}>
+            <IconFlag size={10} />
+            On {progress.current.name}
+            <span style={{ color: theme.color.textDim }}>
+              {progress.next ? `· next ${progress.next.name}` : "· final stage of this line"}
+            </span>
+          </span>
+        ) : (
+          <span style={{ fontSize: 11, color: theme.color.textFaint }}>
+            Y on a Digimon marks where you are — the panel then shows what's next
           </span>
         )}
       </div>
@@ -175,10 +199,13 @@ export function ChainEditor({ chain, index, dex, stripRef, onExitLeft }: Props) 
                     showName
                     showGeneration
                     emphasis="member"
+                    current={chain.current === cell.digimon.id}
                     onActivate={() => openDetails(cell.digimon, cell.position)}
                     actionLabel="Details"
                     onFocus={() => setInspected(cell.digimon)}
                     onButtonDown={cell.key === cells[0].key ? goBack : undefined}
+                    onSecondaryButton={() => toggleCurrent(cell.digimon)}
+                    secondaryLabel={currentLabel(cell.digimon)}
                   />
                 </div>
               );

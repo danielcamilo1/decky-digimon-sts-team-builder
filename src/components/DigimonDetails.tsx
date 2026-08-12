@@ -1,4 +1,4 @@
-import { formatRequirements } from "../data/digimon";
+import { formatRequirements, shortRequirement } from "../data/digimon";
 import type { Digimon, EvolutionCondition } from "../data/types";
 import { STAT_KEYS } from "../data/types";
 import { attributeColor, theme } from "../ui/theme";
@@ -102,6 +102,47 @@ export function EvolutionRequirements({ digimon }: { digimon: Digimon }) {
       {conditions.length > 1 && (
         <div style={{ fontSize: 11, color: theme.color.textFaint }}>Any one of the above paths works.</div>
       )}
+    </div>
+  );
+}
+
+/**
+ * The same requirements as pills that wrap, for the ~270 px the Quick Access column
+ * leaves once the panel's own padding is taken off. One requirement per pill, so a long
+ * Jogress partner name truncates on its own instead of taking the whole line with it.
+ */
+export function RequirementPills({ digimon }: { digimon: Digimon }) {
+  const conditions = digimon.evolution_conditions ?? [];
+  if (!conditions.length) {
+    return <div style={{ fontSize: 11, color: theme.color.textFaint }}>No recorded requirements.</div>;
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
+      {conditions.map((condition, i) => (
+        <div key={i} style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 4, minWidth: 0 }}>
+          {i > 0 && <span style={{ fontSize: 10, color: theme.color.textFaint }}>or</span>}
+          {condition.type !== "stats" && condition.type !== "simple" && (
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: 0.4,
+                textTransform: "uppercase",
+                color: theme.color.textFaint,
+              }}
+            >
+              {CONDITION_LABEL[condition.type]}
+            </span>
+          )}
+          {Object.entries(condition.requirements).map(([key, value]) => (
+            <span key={key} className="dtb-req" title={`${key} ${value}`}>
+              <span style={{ color: theme.color.textFaint }}>{shortRequirement(key)}</span>
+              <span style={{ color: theme.color.text, fontWeight: 600 }}>{value}</span>
+            </span>
+          ))}
+        </div>
+      ))}
     </div>
   );
 }
