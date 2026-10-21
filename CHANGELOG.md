@@ -5,6 +5,33 @@ All notable changes to this plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] — 2026-10-21
+
+### Added
+
+- **The builder on the AYN Thor's bottom screen, under DroidDeck.** A new *Second screen*
+  section in the Quick Access panel turns on a touch version of the builder, served by the
+  plugin at `http://127.0.0.1:47821/` for a browser on the Thor's second screen. Open it once
+  in Chrome and *Add to Home screen*, and it opens full screen from then on. It covers the
+  team, the selected line, and the details of whichever Digimon you tap, with the same edits
+  as the builder: *I'm here*, change branch, evolve, devolve, remove, lock, reorder, and
+  start a new line from search.
+- **Both screens stay in step.** An edit on either one shows up on the other within a moment:
+  the page waits on the plugin for changes instead of polling it, and the plugin tells the
+  Steam UI when the page saves.
+- **Laid out for the bottom screen's shape.** The page is sized for a nearly square
+  1240×1080 landscape panel and scales with whatever density the browser reports, with a
+  portrait layout if the window is turned.
+
+### Notes
+
+- The section only appears under DroidDeck, detected from the `droiddeck-*` helpers it
+  installs in the Linux rootfs. Nothing in DroidDeck itself needs changing.
+- The page listens on loopback only, answers only to `127.0.0.1`/`localhost`, and requires a
+  custom header on writes, so other sites open in the browser can't edit the team.
+- The team-editing rules moved into `src/state/teamOps.ts` so both surfaces share them; the
+  Steam-side behaviour is unchanged.
+
 ## [1.3.0] — 2026-08-12
 
 ### Added
