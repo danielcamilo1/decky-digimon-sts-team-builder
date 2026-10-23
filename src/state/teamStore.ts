@@ -1,4 +1,4 @@
-import { callable } from "@decky/api";
+import { addEventListener, callable } from "@decky/api";
 import { useEffect, useState } from "react";
 
 import { normalizeChains } from "../data/share";
@@ -6,6 +6,9 @@ import type { Chain, TeamState } from "../data/types";
 
 const loadState = callable<[], TeamState>("load_state");
 const saveState = callable<[state: TeamState], boolean>("save_state");
+
+/** Emitted by the backend when the bottom screen saves a change (REMOTE_EVENT in main.py). */
+const REMOTE_EVENT = "team_state_changed";
 
 const EMPTY: TeamState = { chains: [], selected: 0 };
 
@@ -37,6 +40,28 @@ class TeamStore {
 
   private emit() {
     for (const listener of this.listeners) listener();
+  }
+
+  constructor() {
+    addEventListener<[state: TeamState]>(REMOTE_EVENT, (state) => this.applyRemote(state));
+  }
+
+  /**
+   * Takes a team the bottom screen saved. It's already on disk, so this only replaces
+   * what's shown, and drops a pending local write that would otherwise put the older team
+   * back. Selection stays local: each screen has its own.
+   */
+  private applyRemote(stored: TeamState) {
+    const chains = normalizeChains(stored?.chains);
+    if (!chains) return;
+    if (this.saveTimer) {
+      clearTimeout(this.saveTimer);
+      this.saveTimer = null;
+    }
+    this.dirty = false;
+    this.loaded = true;
+    this.state = { chains, selected: clampIndex(this.state.selected, chains.length) };
+    this.emit();
   }
 
   /** Reads the persisted team once; later calls resolve immediately. */

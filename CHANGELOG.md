@@ -5,6 +5,32 @@ All notable changes to this plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
 project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] — 2026-10-23
+
+### Added
+
+- **The builder on the AYN Thor's bottom screen, under Armada OS.** A new *Bottom screen*
+  section in the Quick Access panel puts the builder on the Thor's second screen, by touch,
+  while you play on the top one. It shows the team, the selected line, and the details of
+  whichever Digimon you tap, with the same edits as the builder: *I'm here*, change branch,
+  evolve, devolve, remove, lock, reorder, and start a new line from a stage-by-stage grid.
+- **Both screens stay in step.** An edit on either one shows up on the other at once: the
+  bottom screen waits on the plugin for changes rather than polling, and the plugin tells
+  the Steam UI when the bottom screen saves.
+- **Kind to the OLED.** With no touch for two minutes the bottom screen dims, and after ten
+  it goes black. The touch that wakes it doesn't press anything.
+
+### Notes
+
+- The bottom screen is drawn natively: the plugin borrows the panel from gamescope as a DRM
+  lease and draws it with the system's Python and cairo, the way Panel de Control's bottom
+  screen does. Armada's own bottom-screen desktop is paused while it's on, and comes back
+  when it's switched off.
+- The section only appears under Armada on a device with a second screen. Elsewhere the
+  plugin behaves exactly as before.
+- Only one app can have the bottom screen. If another one has it, the section says so and
+  keeps retrying.
+
 ## [1.3.0] — 2026-08-12
 
 ### Added

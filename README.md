@@ -26,6 +26,9 @@ from [diegogliarte/tools](https://github.com/diegogliarte/tools).
   `?team=…` link straight in.
 - **Offline.** The dataset and all 475 sprites ship inside the plugin; nothing is fetched
   from the network at runtime.
+- **The AYN Thor's bottom screen.** Under [Armada OS](https://github.com/virtudude/armada),
+  the builder can run on the Thor's second screen, by touch, while you play on the top one.
+  See [Bottom screen](#bottom-screen-ayn-thor-on-armada-os).
 
 ## The two surfaces
 
@@ -35,9 +38,36 @@ Decky gives a plugin two very different amounts of room, so the plugin uses both
 | --- | --- |
 | **Quick Access panel** (~310 px wide, over a running game) | Two switchable views: *Lines*, an overview of your team — every line with its name, stage count, lock state and sprites — and *Next up*, the evolution each line is working towards with its requirements and base personality. Plus *Random Team* and *Share*. Picking a line opens it in the builder, with focus already on that line. |
 | **Full-screen page** (`/digimon-time-stranger-team-builder`) | The actual builder: the team list on the left, the selected evolution line laid out horizontally on the right. |
+| **Bottom screen** (AYN Thor on Armada OS) | The builder again, drawn natively on the second screen and driven by touch, so it stays up while you play. |
 
 The panel deliberately doesn't try to be an editor — there isn't room for an evolution graph
 in a 310 px column, and you'd be fighting the layout with a thumbstick.
+
+## Bottom screen (AYN Thor on Armada OS)
+
+On Armada OS, the Quick Access panel gains a **Bottom screen** section. Turn on **Show on the
+bottom screen** and the builder appears on the Thor's lower panel:
+- the team down the left;
+- the selected line across the top;
+- the details of the Digimon you tap underneath.
+
+It has the same edits as the builder: *I'm here*, *Change*, *Evolve*, *Devolve*, remove,
+lock, reorder, and starting a line from a stage-by-stage grid. A change on either screen
+shows up on the other at once.
+
+- **Touch only.** Your controller stays with the game on the top screen. Drag a row
+  sideways or a list up and down to scroll. Removing a Digimon or a line takes a second tap
+  to confirm.
+- **Armada's bottom-screen desktop pauses while it's on.** Armada normally runs a Plasma
+  session down there. The plugin stops it while the builder is showing, and starts it again
+  when you switch off, leave game mode, or the plugin unloads.
+- **Kind to the OLED.** After two minutes without a touch the screen dims, and after ten it
+  goes black. The touch that wakes it doesn't press anything.
+- **One app at a time.** If another plugin already has the bottom screen (Panel de
+  Control's, for one), the section says so and retries until it's free.
+
+The section only appears under Armada on a device with a second screen. Nothing needs
+installing: it uses the system's own Python and `python3-cairo`.
 
 ## Gamepad controls
 
@@ -85,7 +115,7 @@ The plugin then appears in the Decky menu as **Team Builder**.
 
 Requires Node 18+, pnpm, and Python 3. **No Docker needed** — the official CLI only uses a
 container to compile native backends and vendor `py_modules`, and this plugin has neither
-(`main.py` is plain stdlib Python).
+(`main.py` and `py_modules/` are plain stdlib Python, with nothing to vendor; the bottom-screen renderer uses the device's own pycairo).
 
 ```bash
 git clone https://github.com/danielcamilo1/decky-digimon-sts-team-builder.git
@@ -115,7 +145,12 @@ For iterating on a Deck, `pnpm watch` plus rsyncing the plugin directory to
 ## How it's put together
 
 ```
-main.py                     backend: persists the team to Decky's settings dir
+main.py                     backend: persists the team, switches the bottom screen on/off
+py_modules/bottom_screen/   the bottom screen on Armada OS
+  armada.py                 is there a second screen, and can it be used right now
+  launcher.py, controller.py  run the renderer as a user service, give Armada's back after
+  server.py                 loopback HTTP the renderer syncs the team through
+  native/                   the renderer: system Python + pycairo, outside Decky
 scripts/prepare-data.mjs    regenerates assets/ from the upstream repo
 scripts/package.py          zips dist/ into an installable plugin (no container needed)
 assets/
@@ -159,6 +194,19 @@ A couple of decisions worth knowing about:
   that removes the marked Digimon drops the mark instead of silently moving it. It's also
   the one piece of state that isn't in a share code — a shared team is a plan, not a save,
   and leaving it out keeps codes identical to the ones the website emits.
+- **The bottom screen is drawn natively, not by Steam.** Steam's UI only exists on the top
+  screen. On Armada, the game-mode gamescope lends the bottom panel to one program at a time
+  as a DRM lease over `/tmp/gamescope-lease.sock`, and forwards that panel's touches to it.
+  `native/app.py` takes the lease, draws the builder with cairo into two buffers it flips
+  with atomic commits, and maps touches through the panel's mounting
+  (`ARMADA_PANEL_ORIENTATION` from Armada's `device-env`). It runs on the system's own
+  Python as a transient `systemd --user` unit, because Decky's Python is an x86 build under
+  FEX on ARM and has no cairo.
+- **The renderer edits the team through the backend.** The backend keeps a version number
+  for the team. The renderer long-polls with the version it has, so it hears about a
+  Steam-side edit at once. Its own edits are written back, and the backend pushes them to
+  the Steam UI with a Decky event. The edit rules in `native/team.py` are the same as in
+  `state/teamStore.ts`.
 
 ## Thanks & attribution
 

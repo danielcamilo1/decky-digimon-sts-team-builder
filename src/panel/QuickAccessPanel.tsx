@@ -14,6 +14,7 @@ import { useDex } from "../state/useDex";
 import { GlobalStyles } from "../ui/GlobalStyles";
 import { IconCheck, IconDice, IconLock, IconShare } from "../ui/icons";
 import { theme } from "../ui/theme";
+import { BottomScreenSetting } from "./BottomScreenSetting";
 import { NextStepRow } from "./NextStepRow";
 
 const VIEWS: { value: PanelView; label: string; title: string }[] = [
@@ -209,6 +210,8 @@ export function QuickAccessPanel() {
           </ButtonItem>
         </PanelSectionRow>
       </PanelSection>
+
+      <BottomScreenSetting />
     </div>
   );
 }
