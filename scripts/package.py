@@ -36,8 +36,7 @@ EXPECTED_FILES = ["LICENSE", "main.py", "package.json", "plugin.json", "README.m
 
 def iter_files(directory: Path):
     for path in sorted(directory.rglob("*")):
-        # Bytecode from running py_modules locally; Decky compiles its own.
-        if path.is_file() and "__pycache__" not in path.parts:
+        if path.is_file():
             yield path
 
 

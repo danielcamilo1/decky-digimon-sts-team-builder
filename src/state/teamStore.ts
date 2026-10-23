@@ -1,16 +1,11 @@
-import { addEventListener, callable } from "@decky/api";
+import { callable } from "@decky/api";
 import { useEffect, useState } from "react";
 
 import { normalizeChains } from "../data/share";
 import type { Chain, TeamState } from "../data/types";
-import * as ops from "./teamOps";
-import { clampIndex } from "./teamOps";
 
 const loadState = callable<[], TeamState>("load_state");
 const saveState = callable<[state: TeamState], boolean>("save_state");
-
-/** Emitted by the backend when the second-screen page saves a change. */
-const REMOTE_EVENT = "team_state_changed";
 
 const EMPTY: TeamState = { chains: [], selected: 0 };
 
@@ -42,28 +37,6 @@ class TeamStore {
 
   private emit() {
     for (const listener of this.listeners) listener();
-  }
-
-  constructor() {
-    addEventListener<[state: TeamState]>(REMOTE_EVENT, (state) => this.applyRemote(state));
-  }
-
-  /**
-   * Takes a team the second-screen page saved. It's already on disk, so this only
-   * replaces what's shown — and drops a pending local write, which would otherwise put
-   * the older team back. Selection stays local: the two surfaces each have their own.
-   */
-  private applyRemote(stored: TeamState) {
-    const chains = normalizeChains(stored?.chains);
-    if (!chains) return;
-    if (this.saveTimer) {
-      clearTimeout(this.saveTimer);
-      this.saveTimer = null;
-    }
-    this.dirty = false;
-    this.loaded = true;
-    this.state = { chains, selected: clampIndex(this.state.selected, chains.length) };
-    this.emit();
   }
 
   /** Reads the persisted team once; later calls resolve immediately. */
@@ -138,16 +111,10 @@ class TeamStore {
   }
 
   addChain(id: number): number {
-    const chains = ops.addChain(this.state.chains, id);
+    const chains = [...this.state.chains, { ids: [id], locked: false }];
     const index = chains.length - 1;
     this.update({ chains, selected: index });
     return index;
-  }
-
-  /** Applies an edit from ./teamOps, skipping the write when it changed nothing. */
-  private edit(chains: Chain[], selected?: number) {
-    if (chains === this.state.chains) return;
-    this.update({ chains, selected });
   }
 
   /** Replaces a line's members; removing the last member deletes the line. */
@@ -156,45 +123,110 @@ class TeamStore {
       this.removeChain(index);
       return;
     }
-    this.edit(ops.setChainIds(this.state.chains, index, ids));
+    this.update({
+      chains: this.state.chains.map((chain, i) => (i === index ? withIds(chain, ids) : chain)),
+    });
   }
 
-  /** Marks the stage the line has actually reached, or clears the mark with `null`. */
+  /**
+   * Marks the stage the line has actually reached, or clears the mark with `null`.
+   *
+   * Allowed on locked lines: the lock keeps a line's members through a reroll, and
+   * where you are in it isn't a member change.
+   */
   setCurrent(index: number, id: number | null) {
-    this.edit(ops.setCurrent(this.state.chains, index, id));
+    const chain = this.state.chains[index];
+    if (!chain) return;
+    if (id !== null && !chain.ids.includes(id)) return;
+    if ((chain.current ?? null) === id) return;
+
+    this.update({
+      chains: this.state.chains.map((c, i) => (i === index ? withCurrent(c, id) : c)),
+    });
   }
 
   prepend(index: number, id: number) {
-    this.edit(ops.prepend(this.state.chains, index, id));
+    const chain = this.state.chains[index];
+    if (!chain || chain.locked || chain.ids.includes(id)) return;
+    this.setChainIds(index, [id, ...chain.ids]);
   }
 
-  /** Removing an end drops it; picking a member in the middle trims everything after it. */
+  /**
+   * Same semantics as the web tool: removing an end just drops it, while picking a
+   * member in the middle trims everything after it.
+   */
   trimAt(index: number, id: number) {
-    const chains = ops.trimAt(this.state.chains, index, id);
-    this.edit(chains, Math.min(this.state.selected, Math.max(0, chains.length - 1)));
+    const chain = this.state.chains[index];
+    if (!chain || chain.locked) return;
+
+    const position = chain.ids.indexOf(id);
+    if (position === -1) return;
+
+    if (position === 0) this.setChainIds(index, chain.ids.slice(1));
+    else if (position === chain.ids.length - 1) this.setChainIds(index, chain.ids.slice(0, -1));
+    else this.setChainIds(index, chain.ids.slice(0, position + 1));
   }
 
-  /** Takes a different branch out of the Digimon at `position`. */
+  /**
+   * Takes a different branch out of the Digimon at `position`: everything after it is
+   * replaced by `id`. Choosing from the last member simply extends the line.
+   */
   chooseBranch(index: number, position: number, id: number) {
-    this.edit(ops.chooseBranch(this.state.chains, index, position, id));
+    const chain = this.state.chains[index];
+    if (!chain || chain.locked) return;
+    if (position < 0 || position >= chain.ids.length) return;
+
+    const head = chain.ids.slice(0, position + 1);
+    // Re-entering a Digimon already earlier in the line would make a loop.
+    if (head.includes(id)) return;
+
+    this.setChainIds(index, [...head, id]);
   }
 
   toggleLock(index: number) {
-    this.edit(ops.toggleLock(this.state.chains, index));
+    this.update({
+      chains: this.state.chains.map((chain, i) => (i === index ? { ...chain, locked: !chain.locked } : chain)),
+    });
   }
 
   removeChain(index: number) {
-    const chains = ops.removeChain(this.state.chains, index);
-    this.edit(chains, Math.min(this.state.selected, Math.max(0, chains.length - 1)));
+    const chains = this.state.chains.filter((_, i) => i !== index);
+    this.update({ chains, selected: Math.min(this.state.selected, Math.max(0, chains.length - 1)) });
   }
 
   move(index: number, delta: -1 | 1) {
-    this.edit(ops.move(this.state.chains, index, delta), index + delta);
+    const target = index + delta;
+    if (target < 0 || target >= this.state.chains.length) return;
+
+    const chains = [...this.state.chains];
+    [chains[index], chains[target]] = [chains[target], chains[index]];
+    this.update({ chains, selected: target });
   }
 
   clear() {
     this.update({ chains: [], selected: 0 });
   }
+}
+
+/** Applies new members, dropping a progress mark the edit has removed from the line. */
+function withIds(chain: Chain, ids: number[]): Chain {
+  const next: Chain = { ...chain, ids };
+  if (next.current !== undefined && !ids.includes(next.current)) delete next.current;
+  return next;
+}
+
+function withCurrent(chain: Chain, id: number | null): Chain {
+  if (id === null) {
+    const next = { ...chain };
+    delete next.current;
+    return next;
+  }
+  return { ...chain, current: id };
+}
+
+function clampIndex(index: number, length: number): number {
+  if (length === 0) return 0;
+  return Math.min(Math.max(0, Math.floor(index) || 0), length - 1);
 }
 
 export const teamStore = new TeamStore();

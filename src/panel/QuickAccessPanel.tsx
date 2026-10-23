@@ -15,7 +15,6 @@ import { GlobalStyles } from "../ui/GlobalStyles";
 import { IconCheck, IconDice, IconLock, IconShare } from "../ui/icons";
 import { theme } from "../ui/theme";
 import { NextStepRow } from "./NextStepRow";
-import { SecondScreenSetting } from "./SecondScreenSetting";
 
 const VIEWS: { value: PanelView; label: string; title: string }[] = [
   { value: "lines", label: "Lines", title: "Your team" },
@@ -210,8 +209,6 @@ export function QuickAccessPanel() {
           </ButtonItem>
         </PanelSectionRow>
       </PanelSection>
-
-      <SecondScreenSetting />
     </div>
   );
 }

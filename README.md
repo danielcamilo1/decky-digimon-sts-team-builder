@@ -26,9 +26,6 @@ from [diegogliarte/tools](https://github.com/diegogliarte/tools).
   `?team=…` link straight in.
 - **Offline.** The dataset and all 475 sprites ship inside the plugin; nothing is fetched
   from the network at runtime.
-- **A bottom-screen builder on the AYN Thor.** Under [DroidDeck](https://github.com/Droid-Deck/DroidDeck),
-  the plugin can serve a touch version of the builder to a browser on the Thor's second
-  screen, kept in sync with the one in Steam. See [Second screen](#second-screen-ayn-thor-on-droiddeck).
 
 ## The two surfaces
 
@@ -38,43 +35,9 @@ Decky gives a plugin two very different amounts of room, so the plugin uses both
 | --- | --- |
 | **Quick Access panel** (~310 px wide, over a running game) | Two switchable views: *Lines*, an overview of your team — every line with its name, stage count, lock state and sprites — and *Next up*, the evolution each line is working towards with its requirements and base personality. Plus *Random Team* and *Share*. Picking a line opens it in the builder, with focus already on that line. |
 | **Full-screen page** (`/digimon-time-stranger-team-builder`) | The actual builder: the team list on the left, the selected evolution line laid out horizontally on the right. |
-| **Second screen** (DroidDeck only, `http://127.0.0.1:47821/`) | The builder again, rebuilt for touch on a browser on the AYN Thor's bottom screen, so it stays open while you play on the top one. |
 
 The panel deliberately doesn't try to be an editor — there isn't room for an evolution graph
 in a 310 px column, and you'd be fighting the layout with a thumbstick.
-
-## Second screen (AYN Thor on DroidDeck)
-
-DroidDeck runs Steam inside an Android app, and its Linux side shares Android's network. So
-a page the plugin serves on `127.0.0.1` can be opened by any Android browser, and the Thor
-can put that browser on its bottom screen. Nothing in DroidDeck needs changing.
-
-1. In the Quick Access panel, scroll to **Second screen** and turn on **Show on the bottom
-   screen**. The section only appears when the plugin is running under DroidDeck.
-2. On the bottom screen, open Chrome and go to **`http://127.0.0.1:47821/`**.
-3. Chrome menu → **Add to Home screen** → **Install**. From then on it opens full screen,
-   without the address bar, from its own icon.
-4. Leave DroidDeck's own second-screen mode on **None**, so it doesn't cover the browser.
-
-The page is the builder laid out for touch at the bottom screen's shape (1240×1080, nearly
-square): the team down the left, the selected line across the top, and the details of the
-Digimon you tap underneath, with *I'm here*, *Change*, *Evolve*, *Devolve*, remove, lock,
-reorder and add-a-line. A change on either screen shows up on the other within a moment;
-the page waits on the plugin rather than polling it. Removing a Digimon or a line takes a
-second tap to confirm, because a stray touch is easier than a stray button press.
-
-Things to know:
-
-- **Tapping the bottom screen may move controller focus to the browser.** Android normally
-  gives input to one window at a time, so after using the page you may need to tap the top
-  screen before the game takes gamepad input again. How much this happens depends on the
-  device's Android build.
-- **The page only works while the plugin serves it.** If you turn the switch off, or Steam
-  closes, the page says it can't reach the plugin and reconnects when it's back.
-- **It listens on loopback only** (`127.0.0.1:47821`), answers only requests addressed to
-  that host, and accepts writes only with a header a web page on another site can't send,
-  so nothing off the device can reach it, and a website open in the browser can't edit
-  your team.
 
 ## Gamepad controls
 
@@ -122,7 +85,7 @@ The plugin then appears in the Decky menu as **Team Builder**.
 
 Requires Node 18+, pnpm, and Python 3. **No Docker needed** — the official CLI only uses a
 container to compile native backends and vendor `py_modules`, and this plugin has neither
-(`main.py` and `py_modules/` are plain stdlib Python, with nothing to vendor).
+(`main.py` is plain stdlib Python).
 
 ```bash
 git clone https://github.com/danielcamilo1/decky-digimon-sts-team-builder.git
@@ -152,8 +115,7 @@ For iterating on a Deck, `pnpm watch` plus rsyncing the plugin directory to
 ## How it's put together
 
 ```
-main.py                     backend: persists the team, switches the second-screen page on/off
-py_modules/second_screen.py loopback HTTP server for the second-screen page (stdlib only)
+main.py                     backend: persists the team to Decky's settings dir
 scripts/prepare-data.mjs    regenerates assets/ from the upstream repo
 scripts/package.py          zips dist/ into an installable plugin (no container needed)
 assets/
@@ -162,16 +124,13 @@ assets/
   attributes/*.png          attribute icons
 src/
   data/       types, pure evolution-graph logic, share codes, asset URLs
-  state/      team store (observable + debounced persistence), the pure edit
-              rules both surfaces share (teamOps.ts), dex loader,
+  state/      team store (observable + debounced persistence), dex loader,
               panel → page hand-off, which panel view is showing
   components/ portrait, chain strip, detail panels
   pages/      full-screen route and the line editor
   panel/      Quick Access panel: the team overview and the "next up" rows
   modals/     add-Digimon browser, share/import
   ui/         theme tokens, focus CSS, inline SVG icons, primitives
-  second-screen/  the touch page: its own React app, no @decky/ui, built to
-                  dist/second-screen/ by the second config in rollup.config.js
 ```
 
 A couple of decisions worth knowing about:
@@ -200,13 +159,6 @@ A couple of decisions worth knowing about:
   that removes the marked Digimon drops the mark instead of silently moving it. It's also
   the one piece of state that isn't in a share code — a shared team is a plan, not a save,
   and leaving it out keeps codes identical to the ones the website emits.
-- **The second-screen page is a separate web app, not the Steam UI moved over.** Steam's UI
-  lives in its own browser on the top screen and can't draw on another display, and the
-  Steam-side components are built on `@decky/ui`, which only exists inside Steam. So the
-  page reuses the data and edit logic (`data/`, `state/teamOps.ts`, `ui/theme.ts`,
-  `ui/icons.tsx`) and has its own touch components. The backend keeps a version number for
-  the team; the page long-polls with the version it has, and edits from the page are pushed
-  to the Steam UI with a Decky event.
 
 ## Thanks & attribution
 
